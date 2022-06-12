@@ -1,0 +1,4 @@
+build/
+/.mxproject
+*.txt
+*.out

@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "Core/Inc",
+                "Drivers/STM32H7xx_HAL_Driver/Inc",
+                "Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                "Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                "Drivers/CMSIS/Include",
+                "Drivers/W25Q"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32H750xx"
+            ],
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11"
+        }
+    ],
+    "version": 4
+}

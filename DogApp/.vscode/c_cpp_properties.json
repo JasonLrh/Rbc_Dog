@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "Core/Inc",
+                "Drivers/STM32H7xx_HAL_Driver/Inc",
+                "Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                "Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                "Drivers/CMSIS/Include",
+                "Drivers/CMSIS/DSP/Include",
+                "Drivers/W25Q",
+                "Devices/ICM20948",
+                "Devices/ICM20948/Invn",
+                "Devices/ICM20948/ICM20948",
+                "DogSoft"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32H750xx"
+            ],
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11"
+        }
+    ],
+    "version": 4
+}

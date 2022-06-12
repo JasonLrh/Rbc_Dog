@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "sockets.h": "c",
+        "inet.h": "c",
+        "err.h": "c",
+        "errno.h": "c",
+        "opt.h": "c",
+        "st_spi_api.h": "c"
+    }
+}

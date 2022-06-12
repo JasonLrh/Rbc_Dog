@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "w25q.h": "c"
+    },
+    "cortex-debug.variableUseNaturalFormat": false
+}
