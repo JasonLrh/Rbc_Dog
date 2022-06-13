@@ -12,14 +12,19 @@
                 "Drivers/W25Q",
                 "Devices/ICM20948",
                 "Devices/ICM20948/Invn",
+                "Devices/ICM20948/Invn/Devices/Drivers/ICM20948",
                 "Devices/ICM20948/ICM20948",
-                "DogSoft"
+                "DogSoft",
+                "Middlewares/Third_Party/FreeRTOS/Source/include",
+                "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS",
+                "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
-                "STM32H750xx"
+                "STM32H750xx",
+                "ARM_MATH_CM7 "
             ],
-            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
+            "compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
             "cppStandard": "c++11"
         }

@@ -73,11 +73,29 @@ static void simpleLinerWalk_generator(float phrase, dog_leg_input_t * vect, floa
 
 // 2ms 
 // 1s period -> 
+extern osMessageQId qRobotControlTimerHandle;
 extern float target_yaw;
 arm_pid_instance_f32 pid_yaw = {
     .Kp = 1.0f,
     .Ki = 0.00f,
 };
+
+void RobotMoveTask(void const * argument)
+{
+  /* USER CODE BEGIN RobotMoveTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    uint32_t nullPtr[1];
+    if (xQueueReceive(qRobotControlTimerHandle, nullPtr, 5) == pdTRUE){
+    } else {
+        // TODO:!!! control outof time
+    }
+  }
+  /* USER CODE END RobotMoveTask */
+}
+
+
 void dog_body_simpleLinerWalk(float pitch, float zYaw){
     static uint32_t step = 0;
     // static float yaw_intr = 0.f;
@@ -115,10 +133,6 @@ void dog_body_simpleLinerWalk(float pitch, float zYaw){
     // yaw_intr += yaw;
     if (step == PERIOD_CNT){
         step = 0;
-        // ccg_yaw = yaw_intr * 180.f / ( (float)(PERIOD_CNT) * PI);
-        // uart_printf("yaw:%.2f\n", ccg_yaw);
-        
-        // yaw_intr = 0.f;
     }
 }
 

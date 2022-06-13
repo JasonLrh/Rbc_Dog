@@ -1,11 +1,15 @@
 {
     "files.associations": {
+        "*.lst": "arm",
         "stm32h7xx_hal_conf.h": "c",
         "stm32h7xx_hal_def.h": "c",
         "stm32h7xx_hal.h": "c",
         "imu.h": "c",
         "icm20948_hal.h": "c",
         "dataconverter.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "dogcmd.h": "c",
+        "dogmotor.h": "c",
+        "freertosconfig.h": "c"
     }
 }
