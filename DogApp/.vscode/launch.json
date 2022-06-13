@@ -6,11 +6,11 @@
     "configurations": [
         {
             "cwd": "${workspaceFolder}",
-            "executable": "build/H750_Dog.elf",
+            "executable": "build/DogApp.elf",
             "name": "openocd",
             "request": "attach",
             "type": "cortex-debug",
-            "runToEntryPoint": "main",
+            // "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "interface": "swd",
             "servertype": "openocd",

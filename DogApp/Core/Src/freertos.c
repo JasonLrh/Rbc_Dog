@@ -237,16 +237,16 @@ void CanRecTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_RobotMoveTask */
-// void RobotMoveTask(void const * argument)
-// {
-//   /* USER CODE BEGIN RobotMoveTask */
+__weak void RobotMoveTask(void const * argument)
+{
+  /* USER CODE BEGIN RobotMoveTask */
 //   /* Infinite loop */
 //   for(;;)
 //   {
 //     osDelay(1);
 //   }
-//   /* USER CODE END RobotMoveTask */
-// }
+  /* USER CODE END RobotMoveTask */
+}
 
 /* USER CODE BEGIN Header_SendStateTask */
 /**

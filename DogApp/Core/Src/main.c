@@ -24,7 +24,6 @@
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
-#include "wwdg.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -77,7 +76,7 @@ void HAL_IncTick(void)
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MPU_Config(void);
+void PeriphCommonClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern osMessageQId qRobotControlTimerHandle;
@@ -124,14 +123,8 @@ int main(void)
 
   /* USER CODE END 1 */
 
-  /* MPU Configuration--------------------------------------------------------*/
-  MPU_Config();
-
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
-
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -145,10 +138,13 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+/* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
-  HAL_DBGMCU_EnableDBGSleepMode();
-  HAL_DBGMCU_EnableDBGStandbyMode();
-  HAL_DBGMCU_EnableDBGStopMode();
+  // HAL_DBGMCU_EnableDBGSleepMode();
+  // HAL_DBGMCU_EnableDBGStandbyMode();
+  // HAL_DBGMCU_EnableDBGStopMode();
   MX_DMA_Init();
   /* USER CODE END SysInit */
 
@@ -156,17 +152,18 @@ int main(void)
   MX_GPIO_Init();
   MX_FDCAN1_Init();
   MX_FDCAN2_Init();
-  MX_DMA_Init();
+  // MX_DMA_Init();
   MX_TIM7_Init();
   MX_UART8_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_TIM6_Init();
-  MX_WWDG1_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t start_buf[10];
-  uint16_t rxLen;
-  debug_printf("start\n");
+  HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
+  HAL_GPIO_TogglePin(LD_Y_GPIO_Port, LD_Y_Pin);
+  // HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
+  // HAL_GPIO_TogglePin(LD_Y_GPIO_Port, LD_Y_Pin);
+  uart_printf("start\n");
   arm_pid_init_f32(&pid_yaw, 1);
   assert_param(HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, robot_loop) == HAL_OK);
   htim6.Instance->ARR = 2000 - 1 ; // us
@@ -185,14 +182,11 @@ int main(void)
   // }
   imu_start();
 
-  while (HAL_UARTEx_ReceiveToIdle(&huart8,start_buf,10,&rxLen, HAL_MAX_DELAY) != HAL_OK);
+  // while (HAL_UARTEx_ReceiveToIdle(&huart8,start_buf,10,&rxLen, HAL_MAX_DELAY) != HAL_OK);
   HAL_NVIC_EnableIRQ(INT_ICM_EXTI_IRQn);
-  // while (1){__WFI();}
 
-  // uint8_t fifolevel;
-  HAL_Delay(1000);
   dog_motor_init();
-  dog_cmd_start(&huart1);
+  dog_cmd_start(&huart8);
 
 
   // stand up
@@ -214,9 +208,6 @@ int main(void)
 
   // dog_body_standup(58.f, 0.1f);
   // HAL_Delay(4000);
-
-  // while (1){__WFI();}
-  // end stand up
 
   HAL_TIM_Base_Start_IT(&htim6);
   
@@ -259,6 +250,10 @@ void SystemClock_Config(void)
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
+  /** Macro to configure the PLL clock source
+  */
+  __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -300,54 +295,35 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
+  PeriphClkInitStruct.PLL2.PLL2M = 25;
+  PeriphClkInitStruct.PLL2.PLL2N = 160;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 8;
+  PeriphClkInitStruct.PLL2.PLL2R = 8;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOMEDIUM;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+  PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* MPU Configuration */
-
-void MPU_Config(void)
-{
-  MPU_Region_InitTypeDef MPU_InitStruct = {0};
-
-  /* Disables the MPU */
-  HAL_MPU_Disable();
-
-  /** Initializes and configures the Region and the memory to be protected
-  */
-  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x90000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_256MB;
-  MPU_InitStruct.SubRegionDisable = 0x0;
-  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region and the memory to be protected
-  */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-  MPU_InitStruct.BaseAddress = 0x24000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
-  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region and the memory to be protected
-  */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER2;
-  MPU_InitStruct.BaseAddress = 0x30000000;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-  /* Enables the MPU */
-  HAL_MPU_Enable(MPU_HFNMI_PRIVDEF_NONE);
-
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode

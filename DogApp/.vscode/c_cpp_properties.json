@@ -24,7 +24,7 @@
                 "STM32H750xx",
                 "ARM_MATH_CM7 "
             ],
-            "compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
             "cppStandard": "c++11"
         }

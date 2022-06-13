@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-from numpy import byte
+from struct import pack
 import serial
-from serial.threaded import ReaderThread
 import sys
 import time
 import json
@@ -71,7 +70,7 @@ if __name__ == '__main__':
         with open(bin_file_name, 'rb') as f:
             bin_to_write = f.read()
             bin_len = len(bin_to_write)
-            print(bin_len)
+            print("file size :" ,bin_len)
             pack_num = 0xFFFF
 
             header = bin_len.to_bytes(4, 'little') + pack_num.to_bytes(2, 'little') + 'H'.encode()
@@ -81,10 +80,11 @@ if __name__ == '__main__':
             isStart = 0
             bank_size = 0
 
+            print("Header :", end=' ', flush=True)
             while (1): # start header
                 rxb = ser_com.read()
                 rx_str += rxb
-                print("%02X"%int.from_bytes(rxb, 'little'))
+                print("%02X"%int.from_bytes(rxb, 'little'), end=' ', flush=True)
                 
                 if len(rx_str) == 7:
                     if rxb.decode() == 'S':
@@ -99,7 +99,8 @@ if __name__ == '__main__':
                     break
             # if False:
             if isStart > 0: # send pack to flash
-                for pack_num in range(bin_len // bank_size + 1):
+                total_pack_to_send = bin_len // bank_size + 1
+                for pack_num in range(total_pack_to_send):
                     ret = ''
                     while ret != 'POK\n':
                         bin_len = len(bin_to_write)
@@ -115,11 +116,13 @@ if __name__ == '__main__':
 
                             if rxb.decode() == '\n':
                                 ret = rx_str.decode()
-                                print("(page %d)"%(pack_num), end=' ')
+                                progress = pack_num / total_pack_to_send
+                                print("[\033[1;33mflashing\033[0m] [%-18s] %2.1f %%"%('=' * int(progress * 18) + '>', 100 * progress), end=' ', flush=True)
+                                print("\r", end='', flush=False)
                                 if ret != 'POK\n':
-                                    print("unexpect recieve: ", ret[:-1])
-                                else :
-                                    print()
+                                    print("\nunexpect recieve: ", ret[:-1])
+                                # else :
+                                #     print()
                                 break
                     bin_to_write = bin_to_write[bin_len:]
                 # go to app
@@ -130,6 +133,7 @@ if __name__ == '__main__':
                 ser_com.tx_raw(header)
                 header = bin_len.to_bytes(4, 'little') + pack_num.to_bytes(2, 'little') + 'R'.encode()
                 ser_com.tx_raw(header)
+                print("[\033[1;32mflash down\033[0m] %d pack                     "%(total_pack_to_send))
 
 
                     
