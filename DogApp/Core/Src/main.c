@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "dma.h"
 #include "fdcan.h"
 #include "i2c.h"
@@ -75,6 +76,7 @@ void HAL_IncTick(void)
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern arm_pid_instance_f32 pid_yaw;
 // static float target_angle;
@@ -159,69 +161,50 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  while(1){
-    HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
-    HAL_GPIO_TogglePin(LD_Y_GPIO_Port, LD_Y_Pin);
-    HAL_Delay(50);
-  }
-  uint8_t start_buf[10];
-  uint16_t rxLen;
-  debug_printf("start\n");
+  uart_printf("start\n");
   arm_pid_init_f32(&pid_yaw, 1);
-  assert_param(HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, robot_loop) == HAL_OK);
   htim6.Instance->ARR = 2000 - 1 ; // us
   target_yaw = yaw;
   
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
-  HAL_Delay(200); // wait for tick stable
+  // HAL_Delay(200); // wait for tick stable
 
-  // HAL_UART_RegisterCallback(&huart8, HAL_UART_RX_COMPLETE_CB_ID, esp_echo);
-  // HAL_UART_Receive_IT(&huart8, &esp_echo_buff, 1);
-  // for (uint8_t i=0; i < 254; i+=2){
-  //     if (HAL_I2C_IsDeviceReady(&hi2c1, i, 1, HAL_MAX_DELAY) == HAL_OK){
-  //       uart_printf("[i2c] dev: 0x%02X\n", i);
-  //     }
-  // }
-  imu_start();
+  // imu_start();
 
-  while (HAL_UARTEx_ReceiveToIdle(&huart8,start_buf,10,&rxLen, HAL_MAX_DELAY) != HAL_OK);
-  HAL_NVIC_EnableIRQ(INT_ICM_EXTI_IRQn);
-  // while (1){__WFI();}
+  // HAL_NVIC_EnableIRQ(INT_ICM_EXTI_IRQn);
+  // // while (1){__WFI();}
 
-  // uint8_t fifolevel;
-  HAL_Delay(1000);
-  dog_motor_init();
-  dog_cmd_start(&huart1);
+  // // uint8_t fifolevel;
+  // HAL_Delay(1000);
+  // dog_motor_init();
+  // dog_cmd_start(&huart1);
 
 
-  // stand up
-  dog_body_standup(-1.f, -1.f);
-  HAL_Delay(400);
-
-  dog_body_standup(38.f, 0.7f);
-  HAL_Delay(400);
-
-  dog_body_standup(45.3f, 0.9f);
-  HAL_Delay(400);
-
-  target_yaw = yaw;
-  HAL_Delay(2000);
-  target_yaw = yaw;
-
-  // dog_body_standup(53.f, 0.5f);
+  // // stand up
+  // dog_body_standup(-1.f, -1.f);
   // HAL_Delay(400);
 
-  // dog_body_standup(58.f, 0.1f);
-  // HAL_Delay(4000);
+  // dog_body_standup(38.f, 0.7f);
+  // HAL_Delay(400);
 
-  // while (1){__WFI();}
-  // end stand up
+  // dog_body_standup(45.3f, 0.9f);
+  // HAL_Delay(400);
 
-  HAL_TIM_Base_Start_IT(&htim6);
+  // target_yaw = yaw;
+  // HAL_Delay(2000);
+  // target_yaw = yaw;
+  // HAL_TIM_Base_Start_IT(&htim6);
   
   /* USER CODE END 2 */
 
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -301,6 +284,27 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM17 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM17) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
