@@ -77,7 +77,7 @@ void uart_event_task(void *pvParameters)
                     // break;
                     uart_read_bytes(EX_UART_NUM, st_serial_conf.tx_buff, event.size, portMAX_DELAY);
                     base_pos = event.size;
-                    // ESP_LOGI("[uart event]", "rec %d", base_pos);
+                    ESP_LOGI("[uart event]", "rec %d", base_pos);
                     while (base_pos > 0){
                         temp =  send(st_serial_conf.sock, st_serial_conf.tx_buff, base_pos, 0);
                         if (temp <= 0){
@@ -176,6 +176,7 @@ static void st_ota_tcp_rx_cb(int sock, char * cmd, uint16_t len){
 
 static void st_serial_rx_cb(int sock, char * cmd, uint16_t len){
     // if (SysState == SYSTEM_STATE_NORMAL){
+        ESP_LOGI(TAG, "tcp rec -> serial")
         uart_st_write(cmd, (size_t)len);
     // } else {
         // do not write in download mode

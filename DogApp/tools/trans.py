@@ -12,7 +12,7 @@ class PrintLines(LineReader):
         super(PrintLines, self).connection_made(transport)
 
     def handle_line(self, data):
-        print(data)
+        sys.stderr.write(data)
 
     def connection_lost(self, exc):
         if exc:
@@ -43,7 +43,9 @@ if __name__ == '__main__':
     ser.start()
     while True:
         try:
-            ser.write(input().encode())
+            k = input()
+            print("[input]", k)
+            com.write(k.encode())
         except KeyboardInterrupt as e:
             print("EXIT KEY TRIGGER")
             ser.stop()

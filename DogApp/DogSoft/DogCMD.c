@@ -10,7 +10,7 @@
 #define CMD_RESET_MODE      0x02
 #define CMD_ZERO_POSITION   0x03
 
-static char __attribute__ ((section(".dma_data"))) dog_cmd_buff[256];
+// static char __attribute__ ((section(".dma_data"))) dog_cmd_buff[256];
 
 static void config_motor(dog_motor_single_t * motor, const char * cmd){
     // motor = &(motors.raw[motor_id]);
@@ -187,39 +187,74 @@ static void config_system(const char * cmd){
     }
 }
 
-void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
-    if(pos > 0){
-        dog_cmd_buff[pos] = '\0';
-        if (dog_cmd_buff[pos - 1] != '\n'){
-            return;
-        }
-        uart_printf("[cmd] $ %s", dog_cmd_buff);
-        switch (dog_cmd_buff[0])
-        {
-            case 'M':{
-                config_motors(dog_cmd_buff + 1);
-            } break;
+#define UART_BUFF_SIZE 256
+extern osMessageQId qSerialCMDHandle;
+uint8_t * uart_point_buff = NULL;
 
-            case 'E':{
-                dog_body_force_stop();
-            }
-            
-            case 'S':{
-                config_system(dog_cmd_buff + 1);
-            }
-            
-            default:
-                uart_printf("cmd not recognized\n");
-                break;
-        }
+void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
+    uart_point_buff[pos] = '\0';
+    xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
+    uart_point_buff = NULL;
+    uart_point_buff = pvPortMalloc(UART_BUFF_SIZE);
+    if (uart_point_buff == NULL){
+        uart_printf("(E) malloc fail\n");
     }
-    HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)&dog_cmd_buff, 256);
+    HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE);
+}
+
+void SerialCmdTask(void const * argument)
+{
+  /* USER CODE BEGIN SerialCmdTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    char * dog_cmd_buff = NULL;
+    if (xQueueReceive(qSerialCMDHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
+        uint16_t pos;
+        for (pos = 0; pos < UART_BUFF_SIZE; pos ++){
+            if (dog_cmd_buff[pos] == '\0'){
+                break;
+            }
+        }
+        if(pos > 0){
+            // dog_cmd_buff[pos] = '\0';
+            // if (dog_cmd_buff[pos - 1] != '\n'){
+            //     return;
+            // }
+            uart_printf("[cmd] $ %s", dog_cmd_buff);
+            switch (dog_cmd_buff[0])
+            {
+                case 'M':{
+                    config_motors(dog_cmd_buff + 1);
+                } break;
+
+                case 'E':{
+                    dog_body_force_stop();
+                }
+                
+                case 'S':{
+                    config_system(dog_cmd_buff + 1);
+                }
+                
+                default:
+                    uart_printf("cmd not recognized\n");
+                    break;
+            }
+        }
+        vPortFree(dog_cmd_buff);
+    }
+  }
+  /* USER CODE END SerialCmdTask */
 }
 
 
 void dog_cmd_start(UART_HandleTypeDef * huart){
     assert_param( HAL_UART_RegisterRxEventCallback(huart, dog_cmd_rx_callback) == HAL_OK );
-    assert_param( HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)&dog_cmd_buff, 256) == HAL_OK );
+    uart_point_buff = pvPortMalloc(UART_BUFF_SIZE);
+    if (uart_point_buff == NULL){
+        uart_printf("(E) malloc fail\n");
+    }
+    assert_param( HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK );
 }
 
 

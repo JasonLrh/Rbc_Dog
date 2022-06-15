@@ -161,6 +161,7 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  imu_start();
   uart_printf("start\n");
   arm_pid_init_f32(&pid_yaw, 1);
   htim6.Instance->ARR = 2000 - 1 ; // us
@@ -169,8 +170,6 @@ int main(void)
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
   // HAL_Delay(200); // wait for tick stable
-
-  // imu_start();
 
   // HAL_NVIC_EnableIRQ(INT_ICM_EXTI_IRQn);
   // // while (1){__WFI();}
