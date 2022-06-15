@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider
 from PyQt5.QtCore import Qt
 import sys
+import json
+from grpc import server
 import serial
 from serial.threaded import ReaderThread,LineReader
 
@@ -11,7 +13,19 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        com = serial.Serial('/dev/ttyACM0', 2000000)
+        cfgFileName = sys.argv[1]
+        if cfgFileName.endswith('.json') != True:
+            print("please select config json file")
+            exit(0)
+        with open(cfgFileName, 'r') as f:
+            dic = json.loads(f.read())
+            server_name = dic['host']
+            bin_file_name = dic['firmware']
+        if ':' not in server_name:
+            server_name = 'socket://' + server_name
+        server_name += ':3334'
+
+        com = serial.serial_for_url(server_name)
         self.serial = ReaderThread(com, self.PrintLines)
 
         self.button_name = [
@@ -90,6 +104,7 @@ class MainWindow(QWidget):
             super(MainWindow.PrintLines, self).connection_made(transport)
 
         def handle_line(self, data):
+            print("!!")
             MainWindow.process_line(data)
 
         def connection_lost(self, exc):

@@ -7,6 +7,9 @@
         "icm20948_hal.h": "c",
         "dataconverter.h": "c",
         "main.h": "c",
-        "dogcmd.h": "c"
+        "dogcmd.h": "c",
+        "usart.h": "c",
+        "cmsis_os.h": "c",
+        "syslog.h": "c"
     }
 }

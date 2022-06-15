@@ -12,7 +12,7 @@ class PrintLines(LineReader):
         super(PrintLines, self).connection_made(transport)
 
     def handle_line(self, data):
-        sys.stderr.write(data)
+        print(data, flush=True)
 
     def connection_lost(self, exc):
         if exc:
@@ -27,8 +27,11 @@ class MyReaderThread(ReaderThread):
 
 
 if __name__ == '__main__':
-    # lex = sys.argv[1]
-    with open("config.json", 'r') as f:
+    cfgFileName = sys.argv[1]
+    if cfgFileName.endswith('.json') != True:
+        print("please select config json file")
+        exit(0)
+    with open(cfgFileName, 'r') as f:
         dic = json.loads(f.read())
         lex = dic['host']
     

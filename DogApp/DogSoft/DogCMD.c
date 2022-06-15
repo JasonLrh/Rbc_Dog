@@ -23,7 +23,6 @@ static void config_motor(dog_motor_single_t * motor, const char * cmd){
         {
             case 'G':{
                 uart_printf("[M%d]\tp:%4.2f\tv:%4.2f\tt:%4.2f\n", motor->id, motor->p, motor->v, motor->t);
-                break;
             } break;
 
             case 'S':{
@@ -33,7 +32,7 @@ static void config_motor(dog_motor_single_t * motor, const char * cmd){
                     } break;
                     
                     default:{
-                        uart_printf("Invalid motor set parameter\n");
+                        ST_LOGE("Invalid motor set parameter");
                         return;
                     } break;
                 }
@@ -58,7 +57,7 @@ static void config_motor(dog_motor_single_t * motor, const char * cmd){
                             } break;
 
                             default:{
-                                uart_printf("Invalid motor mode\n");
+                                ST_LOGE("Invalid motor mode");
                                 return;
                             } break;
                         }
@@ -75,20 +74,20 @@ static void config_motor(dog_motor_single_t * motor, const char * cmd){
                             dog_motor_set_Control_param(motor, v_p, v_v, v_kp, v_kd, v_t);
                             uart_printf("[M%d]\tControl_param(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f)\n", motor->id, v_p, v_v, v_kp, v_kd, v_t);
                         } else {
-                            uart_printf("Invalid motor control param number:%d\n", i_param);
+                            ST_LOGE("Invalid motor control param number:%d", i_param);
                             return;
                         }
                     } break;
 
                     default:{
-                        uart_printf("Invalid motor function\n");
+                        ST_LOGE("Invalid motor function");
                         return;
                     } break;
                 }
             } break;
         
             default: {
-                uart_printf("motor cmd not recognized\n");
+                ST_LOGE("motor cmd not recognized");
                 return;
             } break;
         }
@@ -121,7 +120,7 @@ static void config_motors(const char * cmd){
         } else {
             motor_id = cmd[0] - '1';
             if (motor_id < 0 || motor_id > 8){
-                uart_printf("Invalid motor id\n");
+                ST_LOGE("Invalid motor id");
                 return;
             }
         }
@@ -183,22 +182,23 @@ static void config_system(const char * cmd){
             } break;
         }
     }else{
-        uart_printf("system cmd not recognized\n");
+        ST_LOGE("system cmd not recognized");
     }
 }
 
 #define UART_BUFF_SIZE 256
 extern osMessageQId qSerialCMDHandle;
+static uint8_t uart_cmd_buff[2][UART_BUFF_SIZE];
 uint8_t * uart_point_buff = NULL;
 
 void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
     uart_point_buff[pos] = '\0';
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
-    // uart_printf("good\n");
-    uart_point_buff = NULL;
-    uart_point_buff = pvPortMalloc(UART_BUFF_SIZE);
-    if (uart_point_buff == NULL){
-        uart_printf("(E) malloc fail\n");
+
+    if (uart_point_buff == uart_cmd_buff[0]){
+        uart_point_buff = uart_cmd_buff[1];
+    } else {
+        uart_point_buff = uart_cmd_buff[0];
     }
     HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE);
 }
@@ -218,11 +218,7 @@ void SerialCmdTask(void const * argument)
             }
         }
         if(pos > 0){
-            // dog_cmd_buff[pos] = '\0';
-            // if (dog_cmd_buff[pos - 1] != '\n'){
-            //     return;
-            // }
-            uart_printf("[cmd] $ %s", dog_cmd_buff);
+            uart_printf("[cmd] $ %s\n", dog_cmd_buff);
             switch (dog_cmd_buff[0])
             {
                 case 'M':{
@@ -238,11 +234,10 @@ void SerialCmdTask(void const * argument)
                 }
                 
                 default:
-                    uart_printf("cmd not recognized\n");
+                    ST_LOGE("cmd not recognized");
                     break;
             }
         }
-        vPortFree(dog_cmd_buff);
     }
   }
   /* USER CODE END SerialCmdTask */
@@ -251,10 +246,7 @@ void SerialCmdTask(void const * argument)
 
 void dog_cmd_start(UART_HandleTypeDef * huart){
     assert_param( HAL_UART_RegisterRxEventCallback(huart, dog_cmd_rx_callback) == HAL_OK );
-    uart_point_buff = pvPortMalloc(UART_BUFF_SIZE);
-    if (uart_point_buff == NULL){
-        uart_printf("(E) malloc fail\n");
-    }
+    uart_point_buff = uart_cmd_buff[0];
     assert_param( HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK );
 }
 

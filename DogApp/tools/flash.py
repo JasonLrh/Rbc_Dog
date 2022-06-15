@@ -46,7 +46,11 @@ class serial_com:
 
 
 if __name__ == '__main__':
-    with open("config.json", 'r') as f:
+    cfgFileName = sys.argv[1]
+    if cfgFileName.endswith('.json') != True:
+        print("please select config json file")
+        exit(0)
+    with open(cfgFileName, 'r') as f:
         dic = json.loads(f.read())
         server_name = dic['host']
         bin_file_name = dic['firmware']

@@ -162,7 +162,7 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   imu_start();
-  uart_printf("start\n");
+  ST_LOGI("system start");
   dog_cmd_start(&huart8);
   arm_pid_init_f32(&pid_yaw, 1);
   htim6.Instance->ARR = 2000 - 1 ; // us
@@ -317,10 +317,10 @@ void Error_Handler(void)
     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
     dog_body_force_stop();
   }
-  uart_printf("[Error_Handler] Entering error handler\n");
+  ST_LOGE("[Error_Handler] Entering error handler");
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
-  uart_printf("[Error_Handler] system halt; restart need\n");
+  ST_LOGD("[Error_Handler] system halt; restart need");
   // __disable_irq();
   while (1)
   {
@@ -341,7 +341,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  uart_printf("[assert fail] : %s:%d\n", file, line);
+  ST_LOGE("[assert fail] : %s:%d", file, line);
   Error_Handler();
   /* USER CODE END 6 */
 }

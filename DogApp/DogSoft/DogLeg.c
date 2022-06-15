@@ -24,8 +24,6 @@ void dog_leg_set_phrase(dog_motor_single_t * motor, const dog_leg_input_t * inpu
 
     dog_motor_set_angle(motor + 0, - input->theta + dig_angle_half);
     dog_motor_set_angle(motor + 1,   input->theta + dig_angle_half);
-    // uart_printf("a0:%.3f,a1:%.3f,m0:%.3f,m1:%.3f\n", - input->theta + dig_angle_half, input->theta + dig_angle_half, 
-    //                                                     motor[0].p, motor[1].p);
 }
 
 void dog_leg_get_phrase(dog_motor_single_t * motor, dog_leg_input_t * output){ // TODO

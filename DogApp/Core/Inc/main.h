@@ -34,6 +34,7 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
+#include "syslog.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -55,8 +56,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-int uart_printf(const char *fmt, ...);
-int debug_printf(const char *fmt, ...);
+// sint debug_printf(const char *fmt, ...);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
