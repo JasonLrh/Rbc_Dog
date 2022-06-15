@@ -176,7 +176,7 @@ static void st_ota_tcp_rx_cb(int sock, char * cmd, uint16_t len){
 
 static void st_serial_rx_cb(int sock, char * cmd, uint16_t len){
     // if (SysState == SYSTEM_STATE_NORMAL){
-        ESP_LOGI(TAG, "tcp rec -> serial")
+        ESP_LOGI(TAG, "tcp rec -> serial");
         uart_st_write(cmd, (size_t)len);
     // } else {
         // do not write in download mode
