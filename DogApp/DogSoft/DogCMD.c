@@ -194,6 +194,7 @@ uint8_t * uart_point_buff = NULL;
 void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
     uart_point_buff[pos] = '\0';
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
+    // uart_printf("good\n");
     uart_point_buff = NULL;
     uart_point_buff = pvPortMalloc(UART_BUFF_SIZE);
     if (uart_point_buff == NULL){

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     while True:
         try:
             k = input()
-            print("[input]", k)
+            # print("[input]", k)
             com.write(k.encode())
         except KeyboardInterrupt as e:
             print("EXIT KEY TRIGGER")

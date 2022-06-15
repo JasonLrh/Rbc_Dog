@@ -46,38 +46,11 @@ void uart_event_task(void *pvParameters)
                 be full.*/
                 case UART_BREAK:
                     ESP_LOGI(TAG, "uart rx break");
+                    break;
                 case UART_DATA:
-                    // uart_read_bytes(EX_UART_NUM, st_serial_conf.tx_buff, event.size, portMAX_DELAY);
-                    // base_pos = event.size;
-                    // while (1){
-                    //     if (uart_read_bytes(EX_UART_NUM, st_serial_conf.tx_buff + base_pos, 1, 1) > 0){
-                    //         base_pos += 1;
-                    //     } else {
-                    //         // ESP_LOGI("[uart event]", "rec %d", base_pos);
-                    //         // for (temp = 0; temp < base_pos; temp++){
-                    //         //     printf("%02X ", st_serial_conf.tx_buff[temp]);
-                    //         //     if ((temp + 1) % 16 == 0){
-                    //         //         printf("\n");
-                    //         //     }
-                    //         // }
-                    //         // printf("\n");
-                    //         while (base_pos > 0){
-                    //             temp =  send(st_serial_conf.sock, st_serial_conf.tx_buff, base_pos, 0);
-                    //             if (temp <= 0){
-                    //                 ESP_LOGE(TAG, "(%4d)tcp(%d) send error %d", st_serial_conf.port, st_serial_conf.sock, errno);
-                    //                 break;
-                    //             }
-                    //             base_pos -= temp;
-                    //         }
-                    //         // ESP_LOGI(TAG, "uart->tcp sendback");
-                    //         // tcp_send_client(&st_serial_conf, NULL, base_pos);
-                    //         break;
-                    //     }
-                    // }
-                    // break;
                     uart_read_bytes(EX_UART_NUM, st_serial_conf.tx_buff, event.size, portMAX_DELAY);
                     base_pos = event.size;
-                    ESP_LOGI("[uart event]", "rec %d", base_pos);
+                    // ESP_LOGI("[uart event]", "rec %d", base_pos);
                     while (base_pos > 0){
                         temp =  send(st_serial_conf.sock, st_serial_conf.tx_buff, base_pos, 0);
                         if (temp <= 0){
@@ -176,7 +149,7 @@ static void st_ota_tcp_rx_cb(int sock, char * cmd, uint16_t len){
 
 static void st_serial_rx_cb(int sock, char * cmd, uint16_t len){
     // if (SysState == SYSTEM_STATE_NORMAL){
-        ESP_LOGI(TAG, "tcp rec -> serial");
+        // ESP_LOGI(TAG, "tcp rec -> serial");
         uart_st_write(cmd, (size_t)len);
     // } else {
         // do not write in download mode

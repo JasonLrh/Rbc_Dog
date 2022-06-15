@@ -163,6 +163,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   imu_start();
   uart_printf("start\n");
+  dog_cmd_start(&huart8);
   arm_pid_init_f32(&pid_yaw, 1);
   htim6.Instance->ARR = 2000 - 1 ; // us
   target_yaw = yaw;
