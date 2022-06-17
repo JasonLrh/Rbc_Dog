@@ -49,14 +49,14 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+#define Error_Handler() errorHandler(__FILE__, __LINE__)
+void errorHandler(char *file, uint32_t line);
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+// void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-// sint debug_printf(const char *fmt, ...);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

@@ -48,13 +48,19 @@
 
 /* USER CODE END Variables */
 osThreadId robotOutTaskHandle;
+// uint32_t robotOutTaskBuffer[ 2048 ];
+osStaticThreadDef_t robotOutTaskControlBlock;
 osThreadId serialCmdTaskHandle;
+// uint32_t serialCmdTaskBuffer[ 2048 ];
+osStaticThreadDef_t serialCmdTaskControlBlock;
 osMessageQId qSerialCMDHandle;
 osMessageQId qRobotTimerUpHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+// StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskStackBuff[ 4096 ];
+StackType_t __attribute__ ((section(".axi_data"))) robotOutTaskBuffer[ 2048 ];
+StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskBuffer[ 2048 ];
 /* USER CODE END FunctionPrototypes */
 
 void RobotOutTask(void const * argument);
@@ -66,23 +72,8 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
 
 /* Hook prototypes */
-void configureTimerForRunTimeStats(void);
-unsigned long getRunTimeCounterValue(void);
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
 void vApplicationMallocFailedHook(void);
-
-/* USER CODE BEGIN 1 */
-/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
-__weak void configureTimerForRunTimeStats(void)
-{
-
-}
-
-__weak unsigned long getRunTimeCounterValue(void)
-{
-return 0;
-}
-/* USER CODE END 1 */
 
 /* USER CODE BEGIN 4 */
 __weak void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
@@ -161,11 +152,11 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of robotOutTask */
-  osThreadDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 2048);
+  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 2048, robotOutTaskBuffer, &robotOutTaskControlBlock);
   robotOutTaskHandle = osThreadCreate(osThread(robotOutTask), NULL);
 
   /* definition and creation of serialCmdTask */
-  osThreadDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 1024);
+  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 2048, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
   serialCmdTaskHandle = osThreadCreate(osThread(serialCmdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

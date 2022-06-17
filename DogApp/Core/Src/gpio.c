@@ -34,14 +34,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
     case INT_ICM_Pin:{
       // irq_from_device = 1;
-      // debug_printf("ICM INT\n");
       if (inv_state == 1){
         inv_icm20948_poll_sensor(&icm_device, (void *)0, build_sensor_event_data);
       }
     } break;
 
     case APP_BOOT_Pin:{ // TODO: BOOT app
-      // debug_printf("Jump to Bootloader\n");
       JumpToBootLoader();
     } break;
     

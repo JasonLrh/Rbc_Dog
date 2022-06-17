@@ -125,6 +125,7 @@ static void config_motors(const char * cmd){
             }
         }
     } else {
+        ST_LOGE("Invalid motor number(1~8 | 'A')");
         return;
     }
     if (all_flag){
@@ -139,6 +140,7 @@ static void config_motors(const char * cmd){
 
 
 extern FDCAN_HandleTypeDef hfdcan1;
+uint8_t tim_queue_enable = 0;
 static void config_system(const char * cmd){
     float kp, kv;
     if (cmd[0] != '\0'){
@@ -149,13 +151,15 @@ static void config_system(const char * cmd){
             } break;
 
             case 'S':{
-                if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
-                    HAL_TIM_Base_Stop_IT(&htim6);
-                }
+                // if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
+                //     HAL_TIM_Base_Stop_IT(&htim6);
+                // }
+                tim_queue_enable = 0;
                 switch (cmd[1])
                 {
                     case 'W':
-                        HAL_TIM_Base_Start_IT(&htim6);
+                        // HAL_TIM_Base_Start_IT(&htim6);
+                        tim_queue_enable = 1;
                         break;
                     
                     case 'U':
@@ -171,14 +175,15 @@ static void config_system(const char * cmd){
                         dog_body_standup(-1, -1); // tim has stoped , just standup here
                         break;
                 
-                default:
-                    break;
+                default:{
+                    ST_LOGE("Invalid CMD");
+                } break;
                 }
 
-            }
+            } break;
 
             default:{
-
+                ST_LOGE("Invalid CMD");
             } break;
         }
     }else{
@@ -188,37 +193,40 @@ static void config_system(const char * cmd){
 
 #define UART_BUFF_SIZE 256
 extern osMessageQId qSerialCMDHandle;
-static uint8_t uart_cmd_buff[2][UART_BUFF_SIZE];
-uint8_t * uart_point_buff = NULL;
+static uint8_t __attribute__ ((section(".dma_data")))  uart_cmd_buff[2][UART_BUFF_SIZE];
+uint8_t * uart_point_buff = uart_cmd_buff[0];
 
 void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
     uart_point_buff[pos] = '\0';
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
-
+    SCB_CleanInvalidateDCache();
+    ST_LOGW("$ %s", uart_point_buff);
     if (uart_point_buff == uart_cmd_buff[0]){
         uart_point_buff = uart_cmd_buff[1];
     } else {
         uart_point_buff = uart_cmd_buff[0];
     }
-    HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE);
+    HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE);
 }
 
 void SerialCmdTask(void const * argument)
 {
   /* USER CODE BEGIN SerialCmdTask */
+  ST_LOGI("Dog CMD start");
+  dog_cmd_start(&huart8);
   /* Infinite loop */
   for(;;)
   {
     char * dog_cmd_buff = NULL;
     if (xQueueReceive(qSerialCMDHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
         uint16_t pos;
+        // ST_LOGI("%p", dog_cmd_buff);
         for (pos = 0; pos < UART_BUFF_SIZE; pos ++){
             if (dog_cmd_buff[pos] == '\0'){
                 break;
             }
         }
         if(pos > 0){
-            uart_printf("[cmd] $ %s\n", dog_cmd_buff);
             switch (dog_cmd_buff[0])
             {
                 case 'M':{
@@ -227,14 +235,14 @@ void SerialCmdTask(void const * argument)
 
                 case 'E':{
                     dog_body_force_stop();
-                }
+                } break;
                 
                 case 'S':{
                     config_system(dog_cmd_buff + 1);
-                }
+                } break;
                 
                 default:
-                    ST_LOGE("cmd not recognized");
+                    ST_LOGE("cmd not recognized %s", dog_cmd_buff);
                     break;
             }
         }
@@ -246,8 +254,7 @@ void SerialCmdTask(void const * argument)
 
 void dog_cmd_start(UART_HandleTypeDef * huart){
     assert_param( HAL_UART_RegisterRxEventCallback(huart, dog_cmd_rx_callback) == HAL_OK );
-    uart_point_buff = uart_cmd_buff[0];
-    assert_param( HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK );
+    assert_param( HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK );
 }
 
 

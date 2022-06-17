@@ -95,22 +95,22 @@ void dog_motor_init(void){
         motors.raw[i].id = motor_group_id_t[i];
         motors.raw[i].hcan = &hfdcan1;
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);
-        HAL_Delay(1);
+        osDelay(1);
         dog_motor_set_Control_param(&(motors.raw[i]), 0.f, 0.f, 0.f, 0.f, 0.f);
-        HAL_Delay(1);
+        osDelay(1);
         // TODO:
     }
-    HAL_Delay(200);
+    osDelay(200);
     for (int i = 0; i < INITIALNUM; i++) {
         dog_motor_set_Mode(&(motors.raw[i]), CMD_ZERO_POSITION);
-        HAL_Delay(1);
+        osDelay(1);
     }
-    HAL_Delay(200);
+    osDelay(200);
     for (int i = 0; i < INITIALNUM; i++) {
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);
-        HAL_Delay(1);
+        osDelay(1);
     }
-    HAL_Delay(200);
+    osDelay(200);
 
 }
 

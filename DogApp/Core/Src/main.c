@@ -76,32 +76,48 @@ void HAL_IncTick(void)
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MPU_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern arm_pid_instance_f32 pid_yaw;
 // static float target_angle;
+extern osMessageQId qRobotTimerUpHandle;
+extern uint8_t tim_queue_enable;
 void robot_loop(TIM_HandleTypeDef * htim){
     static uint8_t cnt = 0;
-    static float next_yaw_err = 0.f;
-    dog_body_simpleLinerWalk( - pitch, next_yaw_err); // TODO : check direction here
-
-    // dog_leg_input_t vec = {
-    //   .theta = 0.f,
-    //   .dist = 0.30f,
-    // };
-    // dog_leg_set_phrase(motors.leg.l_f, &vec);
-    // dog_leg_set_phrase(motors.leg.r_f, &vec);
-    // dog_leg_set_phrase(motors.leg.r_b, &vec);
-    // dog_leg_set_phrase(motors.leg.l_b, &vec);
-
+    char descript[1] = "n";
+    if (tim_queue_enable){
+      ST_LOGD("T");
+      xQueueSendFromISR(qRobotTimerUpHandle, descript, NULL);
+    }
     cnt++;
     if (cnt >= 2000){
       cnt = 0;
-      HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
-
-    
+      HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);    
     }
 }
+
+void RobotOutTask(void const * argument)
+{
+  /* USER CODE BEGIN RobotOutTask */
+  float next_yaw_err = 0.f;
+  char * ptr;
+  // dog_motor_init();
+  ST_LOGI("Dog Motor init Done");
+  HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, robot_loop);
+  HAL_TIM_Base_Start_IT(&htim6);
+  /* Infinite loop */
+  for(;;)
+  {
+    if (xQueueReceive(qRobotTimerUpHandle, &ptr, portMAX_DELAY)) {
+      // ST_LOGI("TU");
+      dog_body_simpleLinerWalk( - pitch, next_yaw_err); // TODO : check direction here
+      // xQueueGenericReset(&qRobotTimerUpHandle, 0);
+    }
+  }
+  /* USER CODE END RobotOutTask */
+}
+
 
 
 // static char esp_echo_buff;
@@ -128,8 +144,14 @@ int main(void)
 
   /* USER CODE END 1 */
 
+  /* MPU Configuration--------------------------------------------------------*/
+  MPU_Config();
+
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -147,7 +169,7 @@ int main(void)
   HAL_DBGMCU_EnableDBGSleepMode();
   HAL_DBGMCU_EnableDBGStandbyMode();
   HAL_DBGMCU_EnableDBGStopMode();
-  MX_DMA_Init();
+  // MX_DMA_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -161,24 +183,15 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  imu_start();
-  ST_LOGI("system start");
-  dog_cmd_start(&huart8);
+  ST_LOGI("System Start");
+  // imu_start();
+  // ST_LOGI("IMU init done");
   arm_pid_init_f32(&pid_yaw, 1);
   htim6.Instance->ARR = 2000 - 1 ; // us
   target_yaw = yaw;
   
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
-  // HAL_Delay(200); // wait for tick stable
-
-  // HAL_NVIC_EnableIRQ(INT_ICM_EXTI_IRQn);
-  // // while (1){__WFI();}
-
-  // // uint8_t fifolevel;
-  // HAL_Delay(1000);
-  // dog_motor_init();
-  // dog_cmd_start(&huart1);
 
 
   // // stand up
@@ -194,7 +207,6 @@ int main(void)
   // target_yaw = yaw;
   // HAL_Delay(2000);
   // target_yaw = yaw;
-  // HAL_TIM_Base_Start_IT(&htim6);
   
   /* USER CODE END 2 */
 
@@ -212,7 +224,7 @@ int main(void)
     // uart_printf("t5:%.3f,t6:%.3f\n", motors.raw[4].t, motors.raw[5].t);
     // __WFI();
     // uart_printf("yaw:%.3f\n", yaw);
-    HAL_Delay(20);
+    // HAL_Delay(20);
 
     /* USER CODE END WHILE */
 
@@ -282,8 +294,82 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void errorHandler(char *file, uint32_t line)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
+    HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
+    dog_body_force_stop();
+  }
+  uart_printf("[%s:%ld]: error handler\n", file, line);
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
+  ST_LOGD("[Error_Handler] system halt; restart need");
+  // __disable_irq();
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
+    HAL_Delay(300);
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
 /* USER CODE END 4 */
+
+/* MPU Configuration */
+
+void MPU_Config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+
+  /* Disables the MPU */
+  HAL_MPU_Disable();
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress = 0x24000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
+  MPU_InitStruct.SubRegionDisable = 0x0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+  MPU_InitStruct.BaseAddress = 0x30000000;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER2;
+  MPU_InitStruct.BaseAddress = 0x20000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER15;
+  MPU_InitStruct.BaseAddress = 0x0;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_4GB;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  /* Enables the MPU */
+  HAL_MPU_Enable(MPU_HFNMI_PRIVDEF_NONE);
+
+}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -310,25 +396,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
-    HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
-    dog_body_force_stop();
-  }
-  ST_LOGE("[Error_Handler] Entering error handler");
-  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
-  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
-  ST_LOGD("[Error_Handler] system halt; restart need");
-  // __disable_irq();
-  while (1)
-  {
-    HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
-    HAL_Delay(300);
-  }
-  /* USER CODE END Error_Handler_Debug */
-}
+// void Error_Handler(void)
+// {
+//   /* USER CODE BEGIN Error_Handler_Debug */
+//   if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
+//     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
+//     dog_body_force_stop();
+//   }
+//   uart_printf("[%s:%ld]: error handler\n", file, line);
+//   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
+//   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
+//   ST_LOGD("[Error_Handler] system halt; restart need");
+//   // __disable_irq();
+//   while (1)
+//   {
+//     HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
+//     HAL_Delay(300);
+//   }
+//   /* USER CODE END Error_Handler_Debug */
+// }
 
 #ifdef  USE_FULL_ASSERT
 /**
@@ -341,7 +427,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  ST_LOGE("[assert fail] : %s:%d", file, line);
+  uart_printf("[%s:%ld]:\tassert fail\n", file, line);
   Error_Handler();
   /* USER CODE END 6 */
 }

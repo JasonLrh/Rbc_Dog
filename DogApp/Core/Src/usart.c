@@ -25,7 +25,7 @@
 #include <stdarg.h>
 
 int uart_printf(const char *fmt, ...){
-  static char buff[128];
+  static char buff[256];
   va_list va;int ret;
   va_start(va, fmt);
   ret = vsprintf(buff, fmt, va);
@@ -36,17 +36,17 @@ int uart_printf(const char *fmt, ...){
   return ret;
 }
 
-int debug_printf(const char *fmt, ...){
-  static char buff[128];
-  va_list va;int ret;
-  va_start(va, fmt);
-  ret = vsprintf(buff, fmt, va);
-  va_end(va);
-  if (ret > 0){
-    HAL_UART_Transmit(&huart1, (uint8_t*)buff, ret, HAL_MAX_DELAY);
-  }
-  return ret;
-}
+// int debug_printf(const char *fmt, ...){
+//   static char buff[128];
+//   va_list va;int ret;
+//   va_start(va, fmt);
+//   ret = vsprintf(buff, fmt, va);
+//   va_end(va);
+//   if (ret > 0){
+//     HAL_UART_Transmit(&huart1, (uint8_t*)buff, ret, HAL_MAX_DELAY);
+//   }
+//   return ret;
+// }
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart8;

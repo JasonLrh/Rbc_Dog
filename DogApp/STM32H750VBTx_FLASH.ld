@@ -197,6 +197,17 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM AT> FLASH
 
+  .axi_data :
+  {
+    . = ALIGN(4);
+    _saxi_data = .;        /* create a global symbol at data start */
+    *(.axi_data)           /* .data sections */
+    *(.axi_data*)          /* .data* sections */
+
+    . = ALIGN(4);
+    _eaxi_data = .;
+  } >RAM_D1 AT> FLASH
+
   .dma_data :
   {
     . = ALIGN(4);

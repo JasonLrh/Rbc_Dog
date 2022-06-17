@@ -80,7 +80,7 @@ class MainWindow(QWidget):
         if cmd == 'SSU':
             def y():
                 st = "SSU%.2f,%.2f\n"%(self.sliders['k_p'].value() / 10, self.sliders['k_v'].value() / 10)
-                print(st[:-1])
+                print(">", st[:-1])
                 self.serial.write(st.encode())
             return y
         else:
@@ -88,13 +88,13 @@ class MainWindow(QWidget):
                 if cmd == 'SSD':
                     self.sliders[self.slider_name[0]].setValue( int (9 * 10) )
                     self.sliders[self.slider_name[1]].setValue( int (1.2 * 10) )
-                print(cmd)
+                print(">", cmd)
                 st = cmd + '\n'
                 self.serial.write(st.encode())
             return y
     
     @classmethod
-    def process_line(self, data):
+    def process_line(data):
         print(data)
 
     class PrintLines(LineReader):
