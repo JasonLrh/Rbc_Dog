@@ -49,12 +49,13 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define Error_Handler() errorHandler(__FILE__, __LINE__)
+// #define Error_Handler() errorHandler(__FILE__, __LINE__)
+#define Error_handler() errorHandler(__FILE__, __LINE__)
 void errorHandler(char *file, uint32_t line);
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-// void Error_Handler(void);
+void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 /* USER CODE END EFP */

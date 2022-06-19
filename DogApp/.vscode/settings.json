@@ -10,6 +10,16 @@
         "dogcmd.h": "c",
         "usart.h": "c",
         "cmsis_os.h": "c",
-        "syslog.h": "c"
+        "syslog.h": "c",
+        "math.h": "c",
+        "arm_math.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "dogsoft.h": "c",
+        "stdarg.h": "c",
+        "gpio.h": "c",
+        "tim.h": "c",
+        "fdcan.h": "c",
+        "dma.h": "c"
     }
 }

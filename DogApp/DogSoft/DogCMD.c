@@ -200,7 +200,7 @@ void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
     uart_point_buff[pos] = '\0';
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
     SCB_CleanInvalidateDCache();
-    ST_LOGW("$ %s", uart_point_buff);
+    
     if (uart_point_buff == uart_cmd_buff[0]){
         uart_point_buff = uart_cmd_buff[1];
     } else {
@@ -212,15 +212,17 @@ void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
 void SerialCmdTask(void const * argument)
 {
   /* USER CODE BEGIN SerialCmdTask */
+  char * dog_cmd_buff = NULL;
   ST_LOGI("Dog CMD start");
   dog_cmd_start(&huart8);
   /* Infinite loop */
   for(;;)
   {
-    char * dog_cmd_buff = NULL;
+    dog_cmd_buff = NULL;
     if (xQueueReceive(qSerialCMDHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
         uint16_t pos;
-        // ST_LOGI("%p", dog_cmd_buff);
+        // SCB_CleanInvalidateDCache();
+        ST_LOGI("$ %s", dog_cmd_buff);
         for (pos = 0; pos < UART_BUFF_SIZE; pos ++){
             if (dog_cmd_buff[pos] == '\0'){
                 break;

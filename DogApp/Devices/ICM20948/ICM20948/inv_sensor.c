@@ -49,7 +49,7 @@ static const uint8_t dmp3_image[] = {
 /*
 * Just a handy variable to handle the icm20948 object
 */
-inv_icm20948_t __attribute__((aligned(8))) icm_device;
+inv_icm20948_t __attribute__((aligned(64))) icm_device;
 
 static const uint8_t EXPECTED_WHOAMI[] = { 0xEA }; /* WHOAMI value for ICM20948 or derivative */
 static int unscaled_bias[THREE_AXES * 2];

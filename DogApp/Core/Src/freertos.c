@@ -58,9 +58,10 @@ osMessageQId qRobotTimerUpHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-// StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskStackBuff[ 4096 ];
-StackType_t __attribute__ ((section(".axi_data"))) robotOutTaskBuffer[ 2048 ];
-StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskBuffer[ 2048 ];
+StackType_t __attribute__ ((section(".axi_data"))) robotOutTaskBuffer[ 4096 ];
+StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskBuffer[ 4096 ];
+// StackType_t robotOutTaskBuffer[ 2048 ];
+// StackType_t serialCmdTaskBuffer[ 2048 ];
 /* USER CODE END FunctionPrototypes */
 
 void RobotOutTask(void const * argument);
@@ -152,11 +153,11 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of robotOutTask */
-  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 256, robotOutTaskBuffer, &robotOutTaskControlBlock);
+  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 4096, robotOutTaskBuffer, &robotOutTaskControlBlock);
   robotOutTaskHandle = osThreadCreate(osThread(robotOutTask), NULL);
 
   /* definition and creation of serialCmdTask */
-  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 256, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
+  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 4096, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
   serialCmdTaskHandle = osThreadCreate(osThread(serialCmdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

@@ -84,25 +84,23 @@ extern arm_pid_instance_f32 pid_yaw;
 extern osMessageQId qRobotTimerUpHandle;
 extern uint8_t tim_queue_enable;
 void robot_loop(TIM_HandleTypeDef * htim){
-    static uint8_t cnt = 0;
     char descript[1] = "n";
     if (tim_queue_enable){
       // ST_LOGD("T");
       xQueueSendFromISR(qRobotTimerUpHandle, descript, NULL);
     }
-    cnt++;
-    if (cnt >= 2000){
-      cnt = 0;
-      HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);    
-    }
+  
 }
 
 void RobotOutTask(void const * argument)
 {
   /* USER CODE BEGIN RobotOutTask */
   float next_yaw_err = 0.f;
+  uint32_t tick;
   char * ptr;
+  uint32_t cnt = 0;
 
+  tick = HAL_GetTick();
   arm_pid_init_f32(&pid_yaw, 1);
 
   ST_LOGI("Starting motor ...");
@@ -120,6 +118,11 @@ void RobotOutTask(void const * argument)
   dog_body_standup(45.3f, 0.9f);
   osDelay(400);
 
+  // while (HAL_GetTick() - tick < 30000){
+  //   ST_LOGD("Wait for IMU stable: %.1f", 30 - (HAL_GetTick() - tick)/1000.f);
+  //   osDelay(500);
+  // }
+
   // target_yaw = yaw;
   // osDelay(2000);
   // target_yaw = yaw;
@@ -132,7 +135,12 @@ void RobotOutTask(void const * argument)
     if (xQueueReceive(qRobotTimerUpHandle, &ptr, portMAX_DELAY)) {
       // ST_LOGI("TU");
       dog_body_simpleLinerWalk( - pitch, next_yaw_err); // TODO : check direction here
-      // xQueueGenericReset(&qRobotTimerUpHandle, 0);
+      cnt++;
+      if (cnt >= 2000){
+        HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
+        
+        cnt = 0;
+      }
     }
   }
   /* USER CODE END RobotOutTask */
@@ -205,7 +213,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
-  
+
   ST_LOGI("Starting imu ...");
   imu_start();
 
@@ -336,14 +344,14 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x24000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
+  MPU_InitStruct.BaseAddress = 0x0;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_4GB;
   MPU_InitStruct.SubRegionDisable = 0x0;
-  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
@@ -352,6 +360,9 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
   MPU_InitStruct.BaseAddress = 0x30000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
@@ -361,17 +372,26 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0x20000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
   /** Initializes and configures the Region and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER15;
-  MPU_InitStruct.BaseAddress = 0x0;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_4GB;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
+  MPU_InitStruct.BaseAddress = 0x24000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER4;
+  MPU_InitStruct.BaseAddress = 0x90000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256MB;
+  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO_URO;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */
@@ -404,25 +424,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-// void Error_Handler(void)
-// {
-//   /* USER CODE BEGIN Error_Handler_Debug */
-//   if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
-//     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
-//     dog_body_force_stop();
-//   }
-//   uart_printf("[%s:%ld]: error handler\n", file, line);
-//   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
-//   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
-//   ST_LOGD("[Error_Handler] system halt; restart need");
-//   // __disable_irq();
-//   while (1)
-//   {
-//     HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
-//     HAL_Delay(300);
-//   }
-//   /* USER CODE END Error_Handler_Debug */
-// }
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
+    HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
+    dog_body_force_stop();
+  }
+  // uart_printf("[%s:%ld]: error handler\n", file, line);
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
+  ST_LOGD("[Error_Handler] system halt; restart need");
+  // __disable_irq();
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
+    HAL_Delay(300);
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
 
 #ifdef  USE_FULL_ASSERT
 /**

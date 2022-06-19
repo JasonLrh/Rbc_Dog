@@ -24,6 +24,7 @@ void dog_leg_set_phrase(dog_motor_single_t * motor, const dog_leg_input_t * inpu
 
     // dog_motor_set_angle(motor + 0, - input->theta + dig_angle_half);
     // dog_motor_set_angle(motor + 1,   input->theta + dig_angle_half);
+    // TODO : v : rad/s
     dog_motor_set_Control_param(motor + 0, - input->theta + dig_angle_half, 0.f, angle_conf.kp, angle_conf.kv, angle_conf.t);
     dog_motor_set_Control_param(motor + 1,   input->theta + dig_angle_half, 0.f, angle_conf.kp, angle_conf.kv, angle_conf.t);
 }
