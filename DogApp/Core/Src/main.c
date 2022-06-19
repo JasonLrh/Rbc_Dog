@@ -87,7 +87,7 @@ void robot_loop(TIM_HandleTypeDef * htim){
     static uint8_t cnt = 0;
     char descript[1] = "n";
     if (tim_queue_enable){
-      ST_LOGD("T");
+      // ST_LOGD("T");
       xQueueSendFromISR(qRobotTimerUpHandle, descript, NULL);
     }
     cnt++;
@@ -102,8 +102,28 @@ void RobotOutTask(void const * argument)
   /* USER CODE BEGIN RobotOutTask */
   float next_yaw_err = 0.f;
   char * ptr;
-  // dog_motor_init();
-  ST_LOGI("Dog Motor init Done");
+
+  arm_pid_init_f32(&pid_yaw, 1);
+
+  ST_LOGI("Starting motor ...");
+  
+  dog_motor_init();
+
+  // stand up
+  ST_LOGI("Stand up");
+  dog_body_standup(-1.f, -1.f);
+  osDelay(400);
+
+  dog_body_standup(38.f, 0.7f);
+  osDelay(400);
+
+  dog_body_standup(45.3f, 0.9f);
+  osDelay(400);
+
+  // target_yaw = yaw;
+  // osDelay(2000);
+  // target_yaw = yaw;
+
   HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, robot_loop);
   HAL_TIM_Base_Start_IT(&htim6);
   /* Infinite loop */
@@ -183,30 +203,18 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  ST_LOGI("System Start");
-  // imu_start();
-  // ST_LOGI("IMU init done");
-  arm_pid_init_f32(&pid_yaw, 1);
+  fdcanfilter();
+  HAL_TIM_Base_Start(&htim7);
+  
+  ST_LOGI("Starting imu ...");
+  imu_start();
+
+  ST_LOGI("System Start. Starting OS...");
+  
   htim6.Instance->ARR = 2000 - 1 ; // us
   target_yaw = yaw;
   
-  fdcanfilter();
-  HAL_TIM_Base_Start(&htim7);
 
-
-  // // stand up
-  // dog_body_standup(-1.f, -1.f);
-  // HAL_Delay(400);
-
-  // dog_body_standup(38.f, 0.7f);
-  // HAL_Delay(400);
-
-  // dog_body_standup(45.3f, 0.9f);
-  // HAL_Delay(400);
-
-  // target_yaw = yaw;
-  // HAL_Delay(2000);
-  // target_yaw = yaw;
   
   /* USER CODE END 2 */
 

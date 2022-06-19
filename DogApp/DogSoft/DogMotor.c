@@ -48,6 +48,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
                         motors.raw[i].v =  uint_to_float(( rx_data[3]          << 4 )|( rx_data[4] >> 4 ), V_MIN, V_MAX, 12)                                 * motors.raw[i].invers;
                         motors.raw[i].t =  uint_to_float(( (rx_data[4] & 0x0F) << 8 )|( rx_data[5]      ), T_MIN, T_MAX, 12)                                 * motors.raw[i].invers;
                         // uart_printf("[rev] %d\n", rx_data[0]);
+                        motors.raw[i].ctrl.valid = 1;
                         break;
                     }
                 }
@@ -94,6 +95,8 @@ void dog_motor_init(void){
     for (int i = 0; i < INITIALNUM; i++) {
         motors.raw[i].id = motor_group_id_t[i];
         motors.raw[i].hcan = &hfdcan1;
+        motors.raw[i].ctrl.valid = 0;
+        arm_pid_init_f32(&(motors.raw[i].ctrl.P), 1);
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);
         osDelay(1);
         dog_motor_set_Control_param(&(motors.raw[i]), 0.f, 0.f, 0.f, 0.f, 0.f);
@@ -137,7 +140,7 @@ void dog_motor_set_Mode(const dog_motor_single_t * mt, uint8_t cmd){
 }
 
 
-void dog_motor_set_Control_param(const dog_motor_single_t * mt, float f_p, float f_v, float f_kp, float f_kd, float f_t){
+void dog_motor_set_Control_param(dog_motor_single_t * mt, float f_p, float f_v, float f_kp, float f_kd, float f_t){
     static uint16_t p, v, kp, kd, t;
     static uint8_t buf[8];
     
@@ -146,6 +149,7 @@ void dog_motor_set_Control_param(const dog_motor_single_t * mt, float f_p, float
     f_p += mt->zeroPos_offset;
     f_v *= mt->invers;
     f_t *= mt->invers;
+    mt->ctrl.valid = 0;
     LIMIT_MIN_MAX(f_p,  P_MIN,  P_MAX);
     LIMIT_MIN_MAX(f_v,  V_MIN,  V_MAX);
     LIMIT_MIN_MAX(f_kp, KP_MIN, KP_MAX);
@@ -178,7 +182,7 @@ dog_motor_angle_mode_config_t angle_conf = {
     .t = 0.f
 };
 
-void dog_motor_set_angle(const dog_motor_single_t * mt, float angle){
+void dog_motor_set_angle(dog_motor_single_t * mt, float angle){
     dog_motor_set_Control_param(mt, angle, 0.f, angle_conf.kp, angle_conf.kv, angle_conf.t);
 }
 

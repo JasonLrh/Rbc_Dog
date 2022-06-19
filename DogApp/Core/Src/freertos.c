@@ -152,11 +152,11 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of robotOutTask */
-  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 2048, robotOutTaskBuffer, &robotOutTaskControlBlock);
+  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 256, robotOutTaskBuffer, &robotOutTaskControlBlock);
   robotOutTaskHandle = osThreadCreate(osThread(robotOutTask), NULL);
 
   /* definition and creation of serialCmdTask */
-  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 2048, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
+  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 256, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
   serialCmdTaskHandle = osThreadCreate(osThread(serialCmdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

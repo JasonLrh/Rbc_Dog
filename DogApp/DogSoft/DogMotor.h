@@ -2,10 +2,16 @@
 #define DOG_MOTOR_H
 
 #include "main.h"
+#include "arm_math.h"
 
 #ifndef PI
 #define PI					3.14159265358979f
 #endif
+
+typedef struct _s_motor_ctrl_t {
+    uint8_t valid;
+    arm_pid_instance_f32 P;
+} s_motor_ctrl_t;
 
 typedef struct _dog_motor_single_t {
     uint32_t id;
@@ -15,6 +21,7 @@ typedef struct _dog_motor_single_t {
     float v;
     float t;
     int8_t invers;
+    s_motor_ctrl_t ctrl;
 } dog_motor_single_t;
 
 typedef union _dog_motor_group_t{
@@ -26,7 +33,7 @@ typedef union _dog_motor_group_t{
         dog_motor_single_t l_b[2];
     }leg;
     dog_motor_single_t leg_array[4][2];
-}dog_motor_group_t;
+} dog_motor_group_t;
 
 typedef struct _dog_motor_angle_mode_config_t{
     float kp;
@@ -38,8 +45,8 @@ extern dog_motor_group_t motors;
 extern dog_motor_angle_mode_config_t angle_conf;
 
 void dog_motor_init(void);
-void dog_motor_set_Control_param(const dog_motor_single_t * mt, float f_p, float f_v, float f_kp, float f_kd, float f_t);
-void dog_motor_set_angle(const dog_motor_single_t * mt, float angle);
+void dog_motor_set_Control_param(dog_motor_single_t * mt, float f_p, float f_v, float f_kp, float f_kd, float f_t);
+void dog_motor_set_angle(dog_motor_single_t * mt, float angle);
 void dog_motor_set_Mode(const dog_motor_single_t * mt, uint8_t cmd);
 
 

@@ -202,7 +202,7 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 LDSCRIPT = STM32H750VBTx_FLASH.ld
 
 # libraries
-LIBS = -lc -lm -lnosys -larm_cortexM7lfsp_math
+LIBS = -lc -lm -lnosys -larm_cortexM7lfdp_math
 LIBDIR = -LDrivers/CMSIS/DSP/Lib/GCC
 LDFLAGS = $(MCU) -specs=nano.specs -u _printf_float -u _scanf_float -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 

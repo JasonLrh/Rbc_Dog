@@ -13,9 +13,9 @@ class cmd_com:
     
     def enter_boot(self):
         self.__send_cmd('EE')
-        time.sleep(0.8)
+        time.sleep(0.4)
         self.__send_cmd('EB')
-        time.sleep(1.8)
+        time.sleep(1.2)
     
     def exit_boot(self):
         self.__send_cmd('EE')
@@ -82,6 +82,8 @@ if __name__ == '__main__':
             isStart = 0
             bank_size = 0
 
+            retry = 0
+
             print("Header :", end=' ', flush=True)
             while (1): # start header
                 rxb = ser_com.read()
@@ -95,7 +97,14 @@ if __name__ == '__main__':
                     elif rxb.decode() == 'E':
                         print("err head")
                         isStart = -1
-                    
+                    elif retry < 3:
+                        retry += 1
+                        print("\nHeader :", end=' ', flush=True)
+                        ser_com.tx_raw(header)
+                        rx_str = b''
+                        continue
+                    else:
+                        isStart = -1
                     bank_size = int.from_bytes(rx_str[0:2], 'little', signed=False)
                     print("ech bank has size : (%d)"%bank_size)
                     break
@@ -136,3 +145,5 @@ if __name__ == '__main__':
                 header = bin_len.to_bytes(4, 'little') + pack_num.to_bytes(2, 'little') + 'R'.encode()
                 ser_com.tx_raw(header)
                 print("[\033[1;32mflash down\033[0m] %d pack                     "%(total_pack_to_send))
+            else:
+                exit(1)

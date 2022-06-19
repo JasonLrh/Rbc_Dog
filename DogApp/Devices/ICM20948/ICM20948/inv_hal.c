@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #define INV_I2C_API_Handler hi2c1
-#define INV_UART_MSG_API_Handler huart1
+#define INV_UART_MSG_API_Handler huart8
 
 extern I2C_HandleTypeDef INV_I2C_API_Handler;
 extern UART_HandleTypeDef INV_UART_MSG_API_Handler;

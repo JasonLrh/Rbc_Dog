@@ -66,7 +66,7 @@ extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN EV */
-
+extern void JumpToBootLoader(void);
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -97,6 +97,9 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    if (HAL_GPIO_ReadPin(APP_BOOT_GPIO_Port, APP_BOOT_Pin) == GPIO_PIN_SET){
+      JumpToBootLoader();
+    }
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
