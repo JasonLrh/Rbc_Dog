@@ -8,6 +8,10 @@
 #define PI					3.14159265358979f
 #endif
 
+#define CMD_MOTOR_MODE      0x01
+#define CMD_RESET_MODE      0x02
+#define CMD_ZERO_POSITION   0x03
+
 typedef struct _s_motor_ctrl_t {
     uint8_t valid;
     arm_pid_instance_f32 P;
@@ -22,6 +26,7 @@ typedef struct _dog_motor_single_t {
     float t;
     int8_t invers;
     s_motor_ctrl_t ctrl;
+    uint8_t monitor;
 } dog_motor_single_t;
 
 typedef union _dog_motor_group_t{

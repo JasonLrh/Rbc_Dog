@@ -83,7 +83,7 @@ arm_pid_instance_f32 pid_yaw = {
     2. generate step. (independent step)
     3. leg output
 */
-void dog_body_simpleLinerWalk(float pitch, float zYaw){
+void dog_body_simpleLinerWalk(){
     static uint32_t step = 0;
     // static float yaw_intr = 0.f;
     // static float ccg_yaw = 0.f;

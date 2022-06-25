@@ -39,7 +39,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       }
     } break;
 
-    case APP_BOOT_Pin:{ // TODO: BOOT app
+    case APP_BOOT_Pin:{ 
       JumpToBootLoader();
     } break;
     

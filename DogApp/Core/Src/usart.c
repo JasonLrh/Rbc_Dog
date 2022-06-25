@@ -23,15 +23,53 @@
 /* USER CODE BEGIN 0 */
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
+
+volatile static uint8_t isTxSending = 0;
+volatile static uint16_t bufPos = 0;
+
+void tx_print_ok(UART_HandleTypeDef *huart){
+  bufPos = 0;
+  isTxSending = 0;
+
+}
+
+// static int add_buff_to_fifo(const uint8_t * data, uint16_t size){
+//   static char __attribute__ ((section(".dma_data"))) buff[512];
+//   static uint16_t pos = 0;
+
+//   memcpy(buff, data, size);
+// }
+int uart_dump(const char * content, uint16_t len){
+  while (isTxSending == 1){
+    HAL_UART_Transmit_DMA(&huart8, (uint8_t*)content, len);
+    isTxSending = 1;
+  }
+}
 
 int uart_printf(const char *fmt, ...){
-  static char buff[256];
+  static char __attribute__ ((section(".dma_data"))) buff[512];
+
   va_list va;int ret;
   va_start(va, fmt);
-  ret = vsprintf(buff, fmt, va);
+  ret = vsprintf(buff + bufPos, fmt, va);
   va_end(va);
+  // if (ret >= 0){
+  //   bufPos += ret;
+  // } else {
+  //   ST_LOGE("printf <0 happend");
+  //   Error_Handler();
+  // }
+
+  // if (isTxSending != 0){
+  // }else{
+  //   HAL_UART_Transmit_DMA(&huart8, (uint8_t*)buff + bufPos, ret);
+  // }
   if (ret > 0){
-    HAL_UART_Transmit(&huart8, (uint8_t*)buff, ret, HAL_MAX_DELAY);
+    while (isTxSending == 1){
+      HAL_UART_Transmit_DMA(&huart8, (uint8_t*)buff + bufPos, ret);
+      isTxSending = 1;
+    }
   }
   return ret;
 }
@@ -52,6 +90,7 @@ int uart_printf(const char *fmt, ...){
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_uart8_rx;
+DMA_HandleTypeDef hdma_uart8_tx;
 DMA_HandleTypeDef hdma_usart1_rx;
 
 /* UART8 init function */
@@ -93,6 +132,7 @@ void MX_UART8_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN UART8_Init 2 */
+  HAL_UART_RegisterCallback(&huart8, HAL_UART_TX_COMPLETE_CB_ID, tx_print_ok);
 
   /* USER CODE END UART8_Init 2 */
 
@@ -196,6 +236,24 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_uart8_rx);
 
+    /* UART8_TX Init */
+    hdma_uart8_tx.Instance = DMA1_Stream2;
+    hdma_uart8_tx.Init.Request = DMA_REQUEST_UART8_TX;
+    hdma_uart8_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_uart8_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_uart8_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_uart8_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_uart8_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_uart8_tx.Init.Mode = DMA_NORMAL;
+    hdma_uart8_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_uart8_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_uart8_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_uart8_tx);
+
     /* UART8 interrupt Init */
     HAL_NVIC_SetPriority(UART8_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(UART8_IRQn);
@@ -280,6 +338,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
     /* UART8 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
+    HAL_DMA_DeInit(uartHandle->hdmatx);
 
     /* UART8 interrupt Deinit */
     HAL_NVIC_DisableIRQ(UART8_IRQn);

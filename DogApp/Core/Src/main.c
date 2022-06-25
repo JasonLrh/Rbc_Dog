@@ -48,6 +48,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+// #define USE_TIMER_GEN_STEP
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -81,26 +83,28 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern arm_pid_instance_f32 pid_yaw;
 // static float target_angle;
-extern osMessageQId qRobotTimerUpHandle;
 extern uint8_t tim_queue_enable;
+
+#ifdef USE_TIMER_GEN_STEP
+extern osMessageQId qRobotTimerUpHandle;
 void robot_loop(TIM_HandleTypeDef * htim){
     char descript[1] = "n";
     if (tim_queue_enable){
       // ST_LOGD("T");
       xQueueSendFromISR(qRobotTimerUpHandle, descript, NULL);
     }
-  
 }
+#endif
 
 void RobotOutTask(void const * argument)
 {
   /* USER CODE BEGIN RobotOutTask */
-  float next_yaw_err = 0.f;
-  uint32_t tick;
-  char * ptr;
+  // float next_yaw_err = 0.f;
+  // uint32_t tick;
+  // char * ptr;
   uint32_t cnt = 0;
 
-  tick = HAL_GetTick();
+  // tick = HAL_GetTick();
   arm_pid_init_f32(&pid_yaw, 1);
 
   ST_LOGI("Starting motor ...");
@@ -126,15 +130,27 @@ void RobotOutTask(void const * argument)
   // target_yaw = yaw;
   // osDelay(2000);
   // target_yaw = yaw;
-
+#ifdef USE_TIMER_GEN_STEP
   HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, robot_loop);
   HAL_TIM_Base_Start_IT(&htim6);
+  htim6.Instance->ARR = DOG_CTRL_PERIOD_ms * 1000 - 1 ; // us
+#else
+  uint32_t prev_Time;
+#endif
   /* Infinite loop */
   for(;;)
   {
+#ifdef USE_TIMER_GEN_STEP
     if (xQueueReceive(qRobotTimerUpHandle, &ptr, portMAX_DELAY)) {
+#else
+    {
+      osDelayUntil(&prev_Time, DOG_CTRL_PERIOD_ms);
+      if (tim_queue_enable == 0){
+        continue;
+      }
+#endif
       // ST_LOGI("TU");
-      dog_body_simpleLinerWalk( - pitch, next_yaw_err); // TODO : check direction here
+      dog_body_simpleLinerWalk(); // TODO : check direction here
       cnt++;
       if (cnt >= 2000){
         HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
@@ -219,8 +235,7 @@ int main(void)
 
   ST_LOGI("System Start. Starting OS...");
   
-  htim6.Instance->ARR = 2000 - 1 ; // us
-  target_yaw = yaw;
+  // target_yaw = yaw;
   
 
   
@@ -431,9 +446,6 @@ void Error_Handler(void)
     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
     dog_body_force_stop();
   }
-  // uart_printf("[%s:%ld]: error handler\n", file, line);
-  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
-  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
   ST_LOGD("[Error_Handler] system halt; restart need");
   // __disable_irq();
   while (1)

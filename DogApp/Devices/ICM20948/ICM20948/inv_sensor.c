@@ -118,7 +118,6 @@ void inv_icm20948_sleep(int ms) {
 
 #include "tim.h"
 void inv_icm20948_sleep_us(int us){
-	// TODO: check us
 	int32_t tickstart = htim7.Instance->CNT + 1;
 	while ((htim7.Instance->CNT - tickstart) < us)
 	{

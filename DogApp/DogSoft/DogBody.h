@@ -3,7 +3,7 @@
 
 #include "DogLeg.h"
 
-void dog_body_simpleLinerWalk(float pitch, float yaw);
+void dog_body_simpleLinerWalk();
 
 void dog_body_force_stop(void);
 

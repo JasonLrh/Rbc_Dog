@@ -8,7 +8,8 @@
 extern enum inv_icm20948_sensor idd_sensortype_conversion(int sensor);
 
 float quat[4];
-volatile float pitch, roll, yaw;
+float euler[3];
+// volatile float pitch, roll, yaw;
 
 uint8_t inv_state = 0;
 
@@ -22,9 +23,9 @@ int InvEMDFrontEnd_putcharHook(int c){
 }
 
 static void quat2euler(void){
-    roll = atan2f(quat[0]*quat[1] + quat[2]*quat[3], 0.5f - quat[1]*quat[1] - quat[2]*quat[2]);
-    pitch = asinf(-2.0f * (quat[1]*quat[3] - quat[0]*quat[2]));
-    yaw = atan2f(quat[1]*quat[2] + quat[0]*quat[3], 0.5f - quat[2]*quat[2] - quat[3]*quat[3]);
+    euler[2] = atan2f(quat[0]*quat[1] + quat[2]*quat[3], 0.5f - quat[1]*quat[1] - quat[2]*quat[2]);
+    euler[0] = asinf(-2.0f * (quat[1]*quat[3] - quat[0]*quat[2]));
+    euler[1] = atan2f(quat[1]*quat[2] + quat[0]*quat[3], 0.5f - quat[2]*quat[2] - quat[3]*quat[3]);
 }
 
 // static void quat2cal(void){

@@ -48,24 +48,30 @@
 
 /* USER CODE END Variables */
 osThreadId robotOutTaskHandle;
-// uint32_t robotOutTaskBuffer[ 2048 ];
+uint32_t robotOutTaskBuffer[ 512 ];
 osStaticThreadDef_t robotOutTaskControlBlock;
 osThreadId serialCmdTaskHandle;
-// uint32_t serialCmdTaskBuffer[ 2048 ];
+uint32_t serialCmdTaskBuffer[ 512 ];
 osStaticThreadDef_t serialCmdTaskControlBlock;
+osThreadId serialLogoutTasHandle;
+uint32_t serialLogoutTasBuffer[ 512 ];
+osStaticThreadDef_t serialLogoutTasControlBlock;
 osMessageQId qSerialCMDHandle;
 osMessageQId qRobotTimerUpHandle;
+osMessageQId qSerialLogTimeHandle;
+osSemaphoreId sRobotTimerUpHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-StackType_t __attribute__ ((section(".axi_data"))) robotOutTaskBuffer[ 4096 ];
-StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskBuffer[ 4096 ];
+// StackType_t __attribute__ ((section(".axi_data"))) robotOutTaskBuffer[ 4096 ];
+// StackType_t __attribute__ ((section(".axi_data"))) serialCmdTaskBuffer[ 4096 ];
 // StackType_t robotOutTaskBuffer[ 2048 ];
 // StackType_t serialCmdTaskBuffer[ 2048 ];
 /* USER CODE END FunctionPrototypes */
 
 void RobotOutTask(void const * argument);
 void SerialCmdTask(void const * argument);
+void SerialLogoutTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -130,6 +136,11 @@ void MX_FREERTOS_Init(void) {
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* definition and creation of sRobotTimerUp */
+  osSemaphoreDef(sRobotTimerUp);
+  sRobotTimerUpHandle = osSemaphoreCreate(osSemaphore(sRobotTimerUp), 2);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -140,12 +151,16 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* definition and creation of qSerialCMD */
-  osMessageQDef(qSerialCMD, 16, uint32_t);
+  osMessageQDef(qSerialCMD, 4, uint32_t);
   qSerialCMDHandle = osMessageCreate(osMessageQ(qSerialCMD), NULL);
 
   /* definition and creation of qRobotTimerUp */
-  osMessageQDef(qRobotTimerUp, 4, uint32_t);
+  osMessageQDef(qRobotTimerUp, 2, uint32_t);
   qRobotTimerUpHandle = osMessageCreate(osMessageQ(qRobotTimerUp), NULL);
+
+  /* definition and creation of qSerialLogTime */
+  osMessageQDef(qSerialLogTime, 2, uint16_t);
+  qSerialLogTimeHandle = osMessageCreate(osMessageQ(qSerialLogTime), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -153,12 +168,16 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of robotOutTask */
-  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 4096, robotOutTaskBuffer, &robotOutTaskControlBlock);
+  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 512, robotOutTaskBuffer, &robotOutTaskControlBlock);
   robotOutTaskHandle = osThreadCreate(osThread(robotOutTask), NULL);
 
   /* definition and creation of serialCmdTask */
-  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityIdle, 0, 4096, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
+  osThreadStaticDef(serialCmdTask, SerialCmdTask, osPriorityLow, 0, 512, serialCmdTaskBuffer, &serialCmdTaskControlBlock);
   serialCmdTaskHandle = osThreadCreate(osThread(serialCmdTask), NULL);
+
+  /* definition and creation of serialLogoutTas */
+  osThreadStaticDef(serialLogoutTas, SerialLogoutTask, osPriorityIdle, 0, 512, serialLogoutTasBuffer, &serialLogoutTasControlBlock);
+  serialLogoutTasHandle = osThreadCreate(osThread(serialLogoutTas), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -202,6 +221,24 @@ __weak void SerialCmdTask(void const * argument)
     osDelay(300);
   }
   /* USER CODE END SerialCmdTask */
+}
+
+/* USER CODE BEGIN Header_SerialLogoutTask */
+/**
+* @brief Function implementing the serialLogoutTas thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_SerialLogoutTask */
+__weak void SerialLogoutTask(void const * argument)
+{
+  /* USER CODE BEGIN SerialLogoutTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END SerialLogoutTask */
 }
 
 /* Private application code --------------------------------------------------*/

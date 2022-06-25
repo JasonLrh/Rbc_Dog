@@ -17,7 +17,8 @@
                 "DogSoft",
                 "Middlewares/Third_Party/FreeRTOS/Source/include",
                 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS",
-                "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F"
+                "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "Middlewares/Third_Party/cJson"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

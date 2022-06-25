@@ -1,11 +1,6 @@
 #include "DogMotor.h"
 #include "fdcan.h"
 
-
-#define CMD_MOTOR_MODE      0x01
-#define CMD_RESET_MODE      0x02
-#define CMD_ZERO_POSITION   0x03
-
 #define P_MIN -95.5f    // Radians
 #define P_MAX 95.5f        
 #define V_MIN -45.0f    // Rad/s
@@ -47,7 +42,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
                         motors.raw[i].p = (uint_to_float(( rx_data[1]          << 8 )|( rx_data[2]      ), P_MIN, P_MAX, 16) - motors.raw[i].zeroPos_offset) * motors.raw[i].invers;
                         motors.raw[i].v =  uint_to_float(( rx_data[3]          << 4 )|( rx_data[4] >> 4 ), V_MIN, V_MAX, 12)                                 * motors.raw[i].invers;
                         motors.raw[i].t =  uint_to_float(( (rx_data[4] & 0x0F) << 8 )|( rx_data[5]      ), T_MIN, T_MAX, 12)                                 * motors.raw[i].invers;
-                        // uart_printf("[rev] %d\n", rx_data[0]);
                         motors.raw[i].ctrl.valid = 1;
                         break;
                     }
@@ -58,10 +52,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
             break;
         }
     }
-
-    // uart_printf("--------\n");
-
-	
     assert_param(HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) == HAL_OK);
 }
 
@@ -188,14 +178,6 @@ void dog_motor_set_angle(dog_motor_single_t * mt, float angle){
 
 
 
-
-
-
-
-
-
-
-
 // ************************static tool function
 
 static uint16_t float_to_uint(float x, float x_min, float x_max, uint8_t bits)
@@ -245,9 +227,4 @@ switch (mt->id){
         __NOP();
     }
     assert_param( HAL_FDCAN_AddMessageToTxFifoQ(mt->hcan, &fdcan_tx_header, buff) == HAL_OK);
-    // while (HAL_FDCAN_IsTxBufferMessagePending(mt->hcan, FDCAN_TX_BUFFER0) != 0){
-    //     __NOP();
-    // }
-    // assert_param(HAL_FDCAN_AddMessageToTxBuffer(mt->hcan, &fdcan_tx_header, buff, FDCAN_TX_BUFFER0) == HAL_OK);
-    // assert_param(HAL_FDCAN_EnableTxBufferRequest(mt->hcan, FDCAN_TX_BUFFER0) == HAL_OK);
 }

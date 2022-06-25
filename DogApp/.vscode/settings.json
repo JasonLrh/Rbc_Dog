@@ -20,6 +20,8 @@
         "gpio.h": "c",
         "tim.h": "c",
         "fdcan.h": "c",
-        "dma.h": "c"
+        "dma.h": "c",
+        "dogbody.h": "c",
+        "dogmotor.h": "c"
     }
 }
