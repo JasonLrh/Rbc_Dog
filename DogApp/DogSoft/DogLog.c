@@ -3,7 +3,7 @@
 #include "cJSON.h"
 #include "imu.h"
 
-extern int uart_dump(const char * content, uint16_t len);
+extern void uart_dump(const char * content, uint16_t len);
 
 static char __attribute__ ((section(".dma_data"))) output_str[1024];
 static void send_state_pack(void){
@@ -21,9 +21,9 @@ static void send_state_pack(void){
           cJSON * v = cJSON_CreateNumber(motors.raw[i].v);
           cJSON * t = cJSON_CreateNumber(motors.raw[i].t);
           cJSON_AddItemToObject(m, "id", id);
-          cJSON_AddItemToObject(m, "p", p);
-          cJSON_AddItemToObject(m, "v", v);
-          cJSON_AddItemToObject(m, "t", t);
+          cJSON_AddItemToObject(m, "p" , p );
+          cJSON_AddItemToObject(m, "v" , v );
+          cJSON_AddItemToObject(m, "t" , t );
           cJSON_AddItemToArray(motor, m);
         }
       }
@@ -32,8 +32,8 @@ static void send_state_pack(void){
       cJSON * imu   = cJSON_CreateObject();
       cJSON * q  = cJSON_CreateFloatArray(quat , 4);
       cJSON * e  = cJSON_CreateFloatArray(euler, 3); // pitch yaw roll
-      // cJSON * euler = cJSON_CreateFloatArray();
-      cJSON_AddItemToObject(imu,  "quat", q);
+      cJSON_AddItemToObject(imu, "quat",  q);
+      cJSON_AddItemToObject(imu, "euler", e);
 
       cJSON_AddItemToObject(root, "imu", imu);
     }
@@ -46,9 +46,8 @@ static void send_state_pack(void){
     uart_dump(output_str, len + 1);
 
     // free job
+    cJSON_free(p);
     cJSON_Delete(root);
-
-
 }
 
 extern osMessageQId qSerialLogTimeHandle;
@@ -67,11 +66,11 @@ void SerialLogoutTask(void const * argument)
         // sendpack
         send_state_pack();
     } else {
+        ST_LOGI("Time update : %d !", rescv);
         if (rescv >= 0 || rescv <= 2000){
             delayTime = rescv;
         }
     }
-    osDelay(1);
   }
   /* USER CODE END SerialLogoutTask */
 }

@@ -68,3 +68,32 @@ $ SSD
 $ SSU0.2,0.4 # or SSU-1,-1
 ~~~
 
+---
+## `L`(Log)
+1. method
+
+|char|method|
+|:-:|:-|
+|O|open log|
+|C|close log|
+
+2. device
+
+|char|device|
+|:-:|:-|
+|M|motor|
+|I|imu (currently not used)|
+
+3. index
+
+|char|index|
+|:-:|:-|
+|1~8|device id|
+
+~~~sh
+# log open  motor 3
+$ LOM3
+
+# log close motor 4
+$ LCM4
+~~~

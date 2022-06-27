@@ -40,6 +40,16 @@ Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/stm32h7xx_it.c \
 Core/Src/stm32h7xx_hal_msp.c \
+Core/Src/system_stm32h7xx.c \
+Core/Src/fdcan.c \
+Core/Src/usart.c \
+Core/Src/i2c.c \
+Core/Src/tim.c \
+Core/Src/imu.c \
+Core/Src/dma.c \
+Core/Src/boot.c \
+Core/Src/freertos.c \
+Core/Src/stm32h7xx_hal_timebase_tim.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
@@ -59,12 +69,9 @@ Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
-Core/Src/system_stm32h7xx.c \
 Drivers/W25Q/w25q.c \
-Core/Src/usart.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c \
-Core/Src/fdcan.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_fdcan.c \
 Devices/ICM20948/Invn/Devices/Sensor.c \
 Devices/ICM20948/Invn/Devices/Drivers/Ak0991x/Ak0991x.c \
@@ -84,22 +91,6 @@ Devices/ICM20948/Invn/EmbUtils/Message.c \
 Devices/ICM20948/Invn/EmbUtils/ErrorHelper.c \
 Devices/ICM20948/ICM20948/inv_sensor.c \
 Devices/ICM20948/ICM20948/inv_hal.c \
-DogSoft/DogBody.c \
-DogSoft/DogLeg.c \
-DogSoft/DogMotor.c \
-DogSoft/DogLog.c \
-DogSoft/CommandSystem/DogCMD.c \
-DogSoft/CommandSystem/DogCMD_Legfunction.c \
-DogSoft/CommandSystem/DogCMD_LogCfg.c \
-DogSoft/CommandSystem/DogCMD_Motor.c \
-DogSoft/CommandSystem/DogCMD_System.c \
-Core/Src/i2c.c \
-Core/Src/tim.c \
-Core/Src/imu.c \
-Core/Src/dma.c \
-Core/Src/boot.c \
-Core/Src/freertos.c \
-Core/Src/stm32h7xx_hal_timebase_tim.c \
 Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
 Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 Middlewares/Third_Party/FreeRTOS/Source/list.c \
@@ -111,6 +102,17 @@ Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 Middlewares/Third_Party/cJson/cJSON.c \
+DogSoft/DogBody.c \
+DogSoft/DogLeg.c \
+DogSoft/DogMotor.c \
+DogSoft/DogLog.c \
+DogSoft/CommandSystem/DogCMD.c \
+DogSoft/CommandSystem/DogCMD_Legfunction.c \
+DogSoft/CommandSystem/DogCMD_LogCfg.c \
+DogSoft/CommandSystem/DogCMD_Motor.c \
+DogSoft/CommandSystem/DogCMD_System.c \
+DogSoft/Application/DogApp_jump.c \
+DogSoft/Application/DogApp_walk.c 
 
 # ASM sources
 ASM_SOURCES = \
@@ -197,7 +199,7 @@ endif
 
 
 # Generate dependency information
-CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
+# CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 
 #######################################
@@ -226,7 +228,8 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+# @$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	@$(CC) -c $(CFLAGS) $< -o $@
 	@echo "[\033[32m c \033[0m] $@"
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)

@@ -40,11 +40,13 @@ void tx_print_ok(UART_HandleTypeDef *huart){
 
 //   memcpy(buff, data, size);
 // }
-int uart_dump(const char * content, uint16_t len){
-  while (isTxSending == 1){
-    HAL_UART_Transmit_DMA(&huart8, (uint8_t*)content, len);
-    isTxSending = 1;
-  }
+void uart_dump(const char * content, uint16_t len){
+  // while (isTxSending == 1){
+  //   HAL_UART_Transmit_DMA(&huart8, (uint8_t*)content, len);
+  //   isTxSending = 1;
+  // }
+
+  HAL_UART_Transmit_IT(&huart8, (uint8_t*)content, len);
 }
 
 int uart_printf(const char *fmt, ...){
@@ -66,10 +68,12 @@ int uart_printf(const char *fmt, ...){
   //   HAL_UART_Transmit_DMA(&huart8, (uint8_t*)buff + bufPos, ret);
   // }
   if (ret > 0){
-    while (isTxSending == 1){
-      HAL_UART_Transmit_DMA(&huart8, (uint8_t*)buff + bufPos, ret);
-      isTxSending = 1;
-    }
+    // while (isTxSending == 1){
+      // SCB_CleanInvalidateDCache_by_Addr(buff, ret);
+      HAL_UART_Transmit(&huart8, (uint8_t*)buff + bufPos, ret, HAL_MAX_DELAY);
+      // HAL_UART_Transmit_DMA(&huart8, (uint8_t*)buff + bufPos, ret);
+      // isTxSending = 1;
+    // }
   }
   return ret;
 }

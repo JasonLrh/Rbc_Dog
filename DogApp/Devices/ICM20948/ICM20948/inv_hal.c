@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #define INV_I2C_API_Handler hi2c1
-#define INV_UART_MSG_API_Handler huart8
+// #define INV_UART_MSG_API_Handler huart8
 
 extern I2C_HandleTypeDef INV_I2C_API_Handler;
-extern UART_HandleTypeDef INV_UART_MSG_API_Handler;
+// extern UART_HandleTypeDef INV_UART_MSG_API_Handler;
 
 extern uint8_t I2C_Address;
 
@@ -75,30 +75,55 @@ int idd_io_hal_write_reg(void * context, uint8_t reg, const uint8_t * wbuffer, u
 /*
 * Printer function for message facility
 */
+
 void msg_printer(int level, const char * str, va_list ap){
 
     static char out_str[256]; /* static to limit stack usage */
-    unsigned idx = 0;
-    const char * ptr = out_str;
-    const char * s[INV_MSG_LEVEL_MAX] = {
-        "",    // INV_MSG_LEVEL_OFF
-        "[E] ", // INV_MSG_LEVEL_ERROR
-        "[W] ", // INV_MSG_LEVEL_WARNING
-        "[I] ", // INV_MSG_LEVEL_INFO
-        "[V] ", // INV_MSG_LEVEL_VERBOSE
-        "[D] ", // INV_MSG_LEVEL_DEBUG
-    };
-    idx += snprintf(&out_str[idx], sizeof(out_str) - idx, "%s", s[level]);
-    if(idx >= (sizeof(out_str)))
-        return;
-    idx += vsnprintf(&out_str[idx], sizeof(out_str) - idx, str, ap);
-    if(idx >= (sizeof(out_str)))
-        return;
-    idx += snprintf(&out_str[idx], sizeof(out_str) - idx, "\r\n");
-    if(idx >= (sizeof(out_str)))
-        return;
+    static char * color_str;
+    // unsigned idx = 0;
+    // const char * ptr = out_str;
+    // const char * s[INV_MSG_LEVEL_MAX] = {
+    //     "",    // INV_MSG_LEVEL_OFF
+    //     "[E] ", // INV_MSG_LEVEL_ERROR
+    //     "[W] ", // INV_MSG_LEVEL_WARNING
+    //     "[I] ", // INV_MSG_LEVEL_INFO
+    //     "[V] ", // INV_MSG_LEVEL_VERBOSE
+    //     "[D] ", // INV_MSG_LEVEL_DEBUG
+    // };
+    // idx += snprintf(&out_str[idx], sizeof(out_str) - idx, "%s", s[level]);
+    // if(idx >= (sizeof(out_str)))
+    //     return;
+    // idx += vsnprintf(&out_str[idx], sizeof(out_str) - idx, str, ap);
+    // if(idx >= (sizeof(out_str)))
+    //     return;
+    // idx += snprintf(&out_str[idx], sizeof(out_str) - idx, "\r\n");
+    // if(idx >= (sizeof(out_str)))
+    //     return;
 
-    HAL_UART_Transmit(&INV_UART_MSG_API_Handler, (uint8_t*)ptr, idx, HAL_MAX_DELAY);
+    vsprintf(out_str, str, ap);
+      
+    switch (level)
+    {
+    case INV_MSG_LEVEL_ERROR:
+      color_str = LOG_COLOR(LOG_COLOR_RED);
+      break;
+    case INV_MSG_LEVEL_WARNING:
+      color_str = LOG_COLOR(LOG_COLOR_BROWN);
+      break;
+    case INV_MSG_LEVEL_INFO:
+      color_str = LOG_COLOR(LOG_COLOR_GREEN);
+      break;
+    case INV_MSG_LEVEL_VERBOSE:
+      color_str = LOG_COLOR(LOG_COLOR_CYAN);
+      break;
+    case INV_MSG_LEVEL_DEBUG:
+      color_str = LOG_COLOR(LOG_COLOR_BLUE);
+      break;
+    default:
+      break;
+    }
+    uart_printf("[%simu\033[0m] %s\n", color_str, out_str);
+    // HAL_UART_Transmit(&INV_UART_MSG_API_Handler, (uint8_t*)ptr, idx, HAL_MAX_DELAY);
 }
 #endif
 

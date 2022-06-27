@@ -22,6 +22,9 @@
         "fdcan.h": "c",
         "dma.h": "c",
         "dogbody.h": "c",
-        "dogmotor.h": "c"
+        "dogmotor.h": "c",
+        "stm32h7xx_ll_pwr.h": "c",
+        "dogapp.h": "c",
+        "dogleg.h": "c"
     }
 }

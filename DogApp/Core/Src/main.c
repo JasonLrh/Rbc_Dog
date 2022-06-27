@@ -30,6 +30,7 @@
 /* USER CODE BEGIN Includes */
 #include "w25q.h"
 #include "DogSoft.h"
+#include "Application/DogApp.h"
 #include <string.h>
 
 #include <stdio.h>
@@ -48,7 +49,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-// #define USE_TIMER_GEN_STEP
+#define USE_TIMER_GEN_STEP
 
 /* USER CODE END PD */
 
@@ -101,7 +102,7 @@ void RobotOutTask(void const * argument)
   /* USER CODE BEGIN RobotOutTask */
   // float next_yaw_err = 0.f;
   // uint32_t tick;
-  // char * ptr;
+  char * ptr;
   uint32_t cnt = 0;
 
   // tick = HAL_GetTick();
@@ -121,6 +122,7 @@ void RobotOutTask(void const * argument)
 
   dog_body_standup(45.3f, 0.9f);
   osDelay(400);
+  ST_LOGI("Stand up-ed");
 
   // while (HAL_GetTick() - tick < 30000){
   //   ST_LOGD("Wait for IMU stable: %.1f", 30 - (HAL_GetTick() - tick)/1000.f);
@@ -141,18 +143,19 @@ void RobotOutTask(void const * argument)
   for(;;)
   {
 #ifdef USE_TIMER_GEN_STEP
-    if (xQueueReceive(qRobotTimerUpHandle, &ptr, portMAX_DELAY)) {
+    if (xQueueReceive(qRobotTimerUpHandle, &ptr, portMAX_DELAY)) 
 #else
-    {
-      osDelayUntil(&prev_Time, DOG_CTRL_PERIOD_ms);
-      if (tim_queue_enable == 0){
-        continue;
-      }
+    // osDelayUntil(&prev_Time, DOG_CTRL_PERIOD_ms);
+    osDelay(DOG_CTRL_PERIOD_ms);
+    if (tim_queue_enable == 0){
+      continue;
+    }
 #endif
+    {
       // ST_LOGI("TU");
-      dog_body_simpleLinerWalk(); // TODO : check direction here
+      dogapp_walk(); // TODO : check direction here
       cnt++;
-      if (cnt >= 2000){
+      if (cnt >= 500){
         HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
         
         cnt = 0;
@@ -467,7 +470,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  uart_printf("[%s:%ld]:\tassert fail\n", file, line);
+  uart_printf("[%s:%ld]:\t<\033[0;31mmassert fail\033[0m]>\n", file, line);
   Error_Handler();
   /* USER CODE END 6 */
 }

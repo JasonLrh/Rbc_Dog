@@ -1,11 +1,14 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QOpenGLWidget
+from PyQt5.QtGui     import QPixmap, QPainter, QColor
+from PyQt5.QtCore    import Qt, QLineF, QTimer
+from PyQt5           import QtGui
+from ui_utils.ui_logview import logView
+
 import sys
 import json
-from grpc import server
+
 import serial
 from serial.threaded import ReaderThread,LineReader
-
 
 
 class MainWindow(QWidget):
@@ -26,13 +29,20 @@ class MainWindow(QWidget):
         server_name += ':3334'
 
         com = serial.serial_for_url(server_name)
+
         self.serial = ReaderThread(com, self.PrintLines)
+        self.serial.start()
+        self.serial.protocol.switch(self)
+        # self.serial.write('LOM3'.encode())
+        # self.serial.write('LOM4'.encode())
+        self.serial.write('LT80'.encode())
 
         self.button_name = [
+            ['force stop!', 'E'],
             ['stand up','SSU'],
             ['sit down','SSD'],
             ['walk','SSW'],
-            ['stop','SSS']
+            # ['stop','SSS']
         ]
 
         self.slider_name = ['k_p', 'k_v']
@@ -40,7 +50,7 @@ class MainWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(300, 300, 305, 100)
+        self.setGeometry(0, 0, 600, 900)
         self.setWindowTitle('Dog Control Pannel')
         self.btns = {}
         for i in range(len(self.button_name)):
@@ -69,9 +79,15 @@ class MainWindow(QWidget):
             self.sliders[self.slider_name[i]].setGeometry(150, 5 + 22 * (len(self.sliders.keys()) - 1), 150, 20)
 
             self.sliders[self.slider_name[i]].valueChanged.connect(self.onSliderChange)
-
+        self.logView = logView(self)
+        self.logView.connect_tx(self.serial.write)
+        self.logView.setGeometry(0, 120, 600, 790)
+        # create log view
+        # self.pix = QPixmap(200, 200)
+        # self.pix.fill(QColor.fromRgb(0x00000000))
+        
         self.show()
-    
+
     def onSliderChange(self):
         for i in self.sliders.keys():
             self.sliders_value_label[i].setText("%02.3f"%(self.sliders[i].value() / 10))
@@ -92,20 +108,30 @@ class MainWindow(QWidget):
                 st = cmd + '\n'
                 self.serial.write(st.encode())
             return y
-    
-    @classmethod
-    def process_line(data):
-        print(data)
+        
 
+    def process_serial_line(self, data):
+        # print(data)
+        if data[0] == '{': # json type
+            try:
+                self.logView.update_data(data)
+            except Exception as e:
+                # print(e)
+                pass
+            
     class PrintLines(LineReader):
         TERMINATOR = b'\n'
         
         def connection_made(self, transport):
             super(MainWindow.PrintLines, self).connection_made(transport)
+            self.view = None
+
+        def switch(self, view):
+            self.view = view
 
         def handle_line(self, data):
-            print("!!")
-            MainWindow.process_line(data)
+            if self.view != None:
+                self.view.process_serial_line(data)
 
         def connection_lost(self, exc):
             sys.stdout.write('port closed\n')

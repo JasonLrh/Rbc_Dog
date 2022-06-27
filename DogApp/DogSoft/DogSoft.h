@@ -4,7 +4,14 @@
 #include "DogBody.h"
 #include "CommandSystem/DogCMD.h"
 
-#define DOG_CTRL_PERIOD_ms 2000
+#define LEGS_DIST_LR 0.3f
+#define LEGS_DIST_FB 0.4f
+
+#define LEG_LEN_UPPER 0.15f
+#define LEG_LEN_LOWER 0.20f
+
+#define DOG_CTRL_PERIOD_ms 2
+#define DOG_CTRL_FREQ_Hz 1000/(float)DOG_CTRL_PERIOD_ms
 
 
 #endif // !DOG_SOFT

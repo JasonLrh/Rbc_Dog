@@ -1,0 +1,1 @@
+acos((HEIGHT**2/cos(2*atan(HEIGHT*(sqrt(1 + V**2*t**2/HEIGHT**2) - 1)/(V*t)))**2 - LEG_LEN_LOWER**2 + LEG_LEN_UPPER**2)*cos(2*atan(HEIGHT*(sqrt(1 + V**2*t**2/HEIGHT**2) - 1)/(V*t)))/(2*HEIGHT*LEG_LEN_UPPER))

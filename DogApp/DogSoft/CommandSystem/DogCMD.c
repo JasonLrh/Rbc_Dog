@@ -14,10 +14,10 @@ static uint8_t __attribute__ ((section(".dma_data")))  uart_cmd_buff[2][UART_BUF
 uint8_t * uart_point_buff = uart_cmd_buff[0];
 
 void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
-    uart_point_buff[pos] = '\0';
 
     // ! clean DCache to sync data space
-    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)uart_point_buff, pos);
+    SCB_InvalidateDCache_by_Addr((uint32_t *)uart_point_buff, pos + 1);
+    uart_point_buff[pos] = '\0';
 
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
 
@@ -33,6 +33,7 @@ void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
 
 extern void dogcmd_motors(const char * cmd);
 extern void dogcmd_system(const char * cmd);
+extern void dogcmd_logcfg(const char * cmd);
 
 void SerialCmdTask(void const * argument)
 {
@@ -68,6 +69,12 @@ void SerialCmdTask(void const * argument)
                 case 'S':{
                     dogcmd_system(dog_cmd_buff + 1);
                 } break;
+
+                case 'L':{
+                    dogcmd_logcfg(dog_cmd_buff + 1);
+                } break;
+
+                
                 
                 default:
                     ST_LOGE("cmd not recognized %s", dog_cmd_buff);

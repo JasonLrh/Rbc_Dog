@@ -22,6 +22,8 @@
 
 #define PERIOD_CNT 220
 
+#define LINE_TIME_MS PERIOD_CNT * DOG_CTRL_PERIOD_ms * BANDWIDTH
+
 
 /*
 // height: 0~1 theoreticaly but [0.3~0.5] better
@@ -69,7 +71,6 @@ static void simpleLinerWalk_generator(float phrase, dog_leg_input_t * vect, floa
         vect->dist = ( y ) / cosf(vect->theta);
     }
 }
-
 
 // 2ms 
 // 1s period -> 
