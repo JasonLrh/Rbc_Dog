@@ -40,6 +40,15 @@ typedef union _dog_motor_group_t{
     dog_motor_single_t leg_array[4][2];
 } dog_motor_group_t;
 
+typedef struct _dog_motor_output_t
+{
+    float vel;
+    float pos;
+    float kv;
+    float kp;
+    float T;
+} dog_motor_output_t;
+
 typedef struct _dog_motor_angle_mode_config_t{
     float kp;
     float kv;
@@ -50,6 +59,7 @@ extern dog_motor_group_t motors;
 extern dog_motor_angle_mode_config_t angle_conf;
 
 void dog_motor_init(void);
+void dog_motor_set(dog_motor_single_t * mt, const dog_motor_output_t * input);
 void dog_motor_set_Control_param(dog_motor_single_t * mt, float f_p, float f_v, float f_kp, float f_kd, float f_t);
 void dog_motor_set_angle(dog_motor_single_t * mt, float angle);
 void dog_motor_set_Mode(const dog_motor_single_t * mt, uint8_t cmd);

@@ -177,6 +177,11 @@ void dog_motor_set_angle(dog_motor_single_t * mt, float angle){
     dog_motor_set_Control_param(mt, angle, 0.f, angle_conf.kp, angle_conf.kv, angle_conf.t);
 }
 
+void dog_motor_set(dog_motor_single_t * mt, const dog_motor_output_t * input){
+    dog_motor_set_Control_param(mt, input->pos, input->vel,
+            input->kp, input->kv, input->T);
+}
+
 
 
 // ************************static tool function

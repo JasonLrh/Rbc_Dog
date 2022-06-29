@@ -113,6 +113,7 @@ void RobotOutTask(void const * argument)
   dog_motor_init();
 
   // stand up
+  osDelay(2000);
   ST_LOGI("Stand up");
   dog_body_standup(-1.f, -1.f);
   osDelay(400);
@@ -139,6 +140,7 @@ void RobotOutTask(void const * argument)
 #else
   uint32_t prev_Time;
 #endif
+  step_param_update(-1,-1,-1,-1);
   /* Infinite loop */
   for(;;)
   {

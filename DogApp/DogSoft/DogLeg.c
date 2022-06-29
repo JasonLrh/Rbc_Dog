@@ -6,6 +6,10 @@
 
 #define COMPUTE_TEMP(x) (LEG_LEN_UPPER*LEG_LEN_UPPER - LEG_LEN_LOWER*LEG_LEN_LOWER + x*x)/(2.f * x * LEG_LEN_UPPER)
 
+void dog_leg_set(dog_motor_single_t * motor, const dog_leg_output_t * input){
+    dog_motor_set(motor + 0, (input->m) + 0);
+    dog_motor_set(motor + 1, (input->m) + 1);
+}
 
 void dog_leg_set_phrase(dog_motor_single_t * motor, const dog_leg_input_t * input){
     float d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * input->dist * LEG_LEN_UPPER;

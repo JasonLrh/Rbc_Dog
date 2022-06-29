@@ -88,9 +88,9 @@ class pltWidget(QWidget):
                 ci.append(id)
                 for item in ['p', 'v', 't']:
                     self.motor[id][item].append(m[item])
-                    if len(self.motor[id][item]) > 200:
-                        self.motor[id][item] = self.motor[id][item][-201:-1]
-                        # self.motor[id][item].pop(0)
+                    while len(self.motor[id][item]) > 200:
+                        # self.motor[id][item] = self.motor[id][item][-201:-1]
+                        self.motor[id][item].pop(0)
             else:
                 self.motor[id] = {'p':[], 'v':[], 't':[]}
         
