@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
 #include "i2c.h"
@@ -175,6 +176,7 @@ void RobotOutTask(void const * argument)
 //   HAL_UART_Receive_IT(huart, &esp_echo_buff, 1);
 // }
 
+uint16_t __attribute__ ((section(".dma_data"))) adc_buf[200];
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -231,14 +233,23 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_TIM6_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
+
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_MODE_MASK, ADC_SINGLE_ENDED);
+
+  HAL_ADC_Start_DMA(&hadc1, adc_buf, 100);
+
 
   ST_LOGI("Starting imu ...");
   imu_start();
 
   ST_LOGI("System Start. Starting OS...");
+  SCB_InvalidateDCache_by_Addr(adc_buf, 200);
+
+  ST_LOGI("voltage:%.2f V", adc_buf[2] * 3.3 * 13 / 65536.f );
   
   // target_yaw = yaw;
   
@@ -248,7 +259,6 @@ int main(void)
 
   /* Call init function for freertos objects (in freertos.c) */
   MX_FREERTOS_Init();
-
   /* Start scheduler */
   osKernelStart();
 
@@ -281,13 +291,14 @@ void SystemClock_Config(void)
   /** Supply configuration update enable
   */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
-
   /** Configure the main internal regulator output voltage
   */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
-
+  /** Macro to configure the PLL clock source
+  */
+  __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -309,7 +320,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -359,7 +369,6 @@ void MPU_Config(void)
 
   /* Disables the MPU */
   HAL_MPU_Disable();
-
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
@@ -375,7 +384,6 @@ void MPU_Config(void)
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
@@ -385,7 +393,6 @@ void MPU_Config(void)
   MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER2;
@@ -395,7 +402,6 @@ void MPU_Config(void)
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER3;
@@ -405,7 +411,6 @@ void MPU_Config(void)
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER4;
@@ -451,6 +456,8 @@ void Error_Handler(void)
     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
     dog_body_force_stop();
   }
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
+  // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
   ST_LOGD("[Error_Handler] system halt; restart need");
   // __disable_irq();
   while (1)
@@ -477,3 +484,4 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+

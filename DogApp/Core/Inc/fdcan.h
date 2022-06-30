@@ -33,7 +33,6 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
-
 extern FDCAN_HandleTypeDef hfdcan2;
 
 /* USER CODE BEGIN Private defines */
