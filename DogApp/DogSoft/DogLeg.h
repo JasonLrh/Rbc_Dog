@@ -8,6 +8,18 @@ typedef struct _dog_leg_input_t {
     float theta;
 } dog_leg_input_t;
 
+typedef struct _dog_leg_pos_t {
+    float dist; // 0~1
+    float theta;
+    float vel;
+} dog_leg_pos_t;
+
+typedef struct _dog_leg_t {
+    dog_leg_pos_t target;
+    dog_leg_pos_t current;
+
+} dog_leg_t;
+
 typedef struct _dog_leg_output_t
 {
     dog_motor_output_t m[2];

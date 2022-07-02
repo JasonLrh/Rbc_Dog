@@ -128,6 +128,8 @@ static void st_ota_tcp_rx_cb(int sock, char * cmd, uint16_t len){
         case 'B':
             SysState = SYSTEM_STATE_DOWNLOAD;
             uart_st_set_boot_mode(true);
+            uart_flush_input(EX_UART_NUM);
+            xQueueReset(uart0_queue);
             break;
         
         case 'E':

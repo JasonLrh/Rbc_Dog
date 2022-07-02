@@ -101,6 +101,7 @@ void dog_body_simpleLinerWalk(){
         低头   ：-
     */
     float tgt_yaw = arm_pid_f32(&pid_yaw, target_yaw - yaw); // TODO : check direction
+    tgt_yaw = 0.f;
     // float tgt_yaw = 0.f; // TODO : check direction
     /*
         左转   ：+

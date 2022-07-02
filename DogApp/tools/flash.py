@@ -15,7 +15,8 @@ class cmd_com:
         self.__send_cmd('EE')
         time.sleep(0.4)
         self.__send_cmd('EB')
-        time.sleep(1.2)
+        time.sleep(0.2)
+        self.__com.read()
     
     def exit_boot(self):
         self.__send_cmd('EE')
@@ -60,8 +61,8 @@ if __name__ == '__main__':
 
     bootWriter = cmd_com(server_name)
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'E':
+    if len(sys.argv) > 2:
+        if sys.argv[2] == 'E':
             bootWriter.exit_boot()
             exit()
 

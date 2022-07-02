@@ -18,8 +18,9 @@ void dog_cmd_rx_callback(UART_HandleTypeDef * huart, uint16_t pos){
     // ! clean DCache to sync data space
     // SCB_CleanDCache_by_Addr((uint32_t *)uart_point_buff + pos, 1);
     // SCB_InvalidateDCache_by_Addr((uint32_t *)uart_point_buff, pos);
+    SCB_InvalidateDCache_by_Addr(uart_point_buff, (pos / 32 + 1) * 32 );
     uart_point_buff[pos] = '\0';
-    SCB_CleanDCache_by_Addr((uint32_t *)(uart_point_buff + pos), 1);
+    // SCB_CleanDCache_by_Addr((uint32_t *)(uart_point_buff + pos), 1);
 
     xQueueSendFromISR(qSerialCMDHandle,(void *)&uart_point_buff, NULL);
 
@@ -49,7 +50,6 @@ void SerialCmdTask(void const * argument)
     dog_cmd_buff = NULL;
     if (xQueueReceive(qSerialCMDHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
         uint16_t pos;
-        SCB_InvalidateDCache();
         ST_LOGI("$ %s", dog_cmd_buff);
         for (pos = 0; pos < UART_BUFF_SIZE; pos ++){
             if (dog_cmd_buff[pos] == '\0'){

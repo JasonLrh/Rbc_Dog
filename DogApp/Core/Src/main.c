@@ -156,7 +156,8 @@ void RobotOutTask(void const * argument)
 #endif
     {
       // ST_LOGI("TU");
-      dogapp_walk(); // TODO : check direction here
+      // dogapp_walk(); // TODO : check direction here
+      dogapp_simpleWalk();
       cnt++;
       if (cnt >= 500){
         HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);
@@ -176,7 +177,7 @@ void RobotOutTask(void const * argument)
 //   HAL_UART_Receive_IT(huart, &esp_echo_buff, 1);
 // }
 
-uint16_t __attribute__ ((section(".dma_data"))) adc_buf[200];
+uint32_t __attribute__ ((section(".dma_data"))) adc_buf[256];
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -238,18 +239,36 @@ int main(void)
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
 
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_MODE_MASK, ADC_SINGLE_ENDED);
 
-  HAL_ADC_Start_DMA(&hadc1, adc_buf, 100);
+  // HAL_ADC_Start_DMA(&hadc1, adc_buf, 256);
+  // HAL_ADC_Start(&hadc1);
+  // HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
 
   ST_LOGI("Starting imu ...");
   imu_start();
 
   ST_LOGI("System Start. Starting OS...");
-  SCB_InvalidateDCache_by_Addr(adc_buf, 200);
 
-  ST_LOGI("voltage:%.2f V", adc_buf[2] * 3.3 * 13 / 65536.f );
+  // for (int i = 0; i<1; i++){
+    // HAL_ADC_Start_DMA(&hadc1, adc_buf, 256);
+    // HAL_Delay(500);
+    // uint32_t v = 0;
+    // SCB_InvalidateDCache_by_Addr(adc_buf, 256 * 4);
+    // for (int i = 0; i < 16; i++){
+    //   v += adc_buf[i];
+    // }
+    // v /= 16;
+    // ST_LOGI("voltage:%.2f V (%d)", v * 3.3 * 13 / 65536.f, v);
+    // HAL_Delay(200);
+    HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+    uint32_t v = HAL_ADC_GetValue(&hadc1);
+    HAL_ADC_Stop(&hadc1);
+    ST_LOGI("voltage:%.2f V (%d)", v * 3.3 * 13 / 65536.f, v);
+    // HAL_Delay(200);
+  // }
   
   // target_yaw = yaw;
   
@@ -342,7 +361,6 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void errorHandler(char *file, uint32_t line)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
   if (HAL_TIM_Base_GetState(&htim6) == HAL_TIM_STATE_BUSY){
     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
     dog_body_force_stop();
@@ -357,7 +375,6 @@ void errorHandler(char *file, uint32_t line)
     HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
     HAL_Delay(300);
   }
-  /* USER CODE END Error_Handler_Debug */
 }
 /* USER CODE END 4 */
 
@@ -456,6 +473,7 @@ void Error_Handler(void)
     HAL_TIM_Base_Stop_IT(&htim6); // stop robot loop
     dog_body_force_stop();
   }
+  // uart_printf("[%s:%ld]: error handler\n", file, line);
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
   ST_LOGD("[Error_Handler] system halt; restart need");

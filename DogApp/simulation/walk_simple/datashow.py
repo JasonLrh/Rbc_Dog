@@ -33,8 +33,8 @@ with open('data.csv', 'r') as f:
     
     plt.plot(t,the1,label='p1')
     plt.plot(t,the2,label='p2')
-    plt.plot(t,the1_,label='v1')
-    plt.plot(t,the2_,label='v2')
+    # plt.plot(t,the1_,label='v1')
+    # plt.plot(t,the2_,label='v2')
     # plt.plot(t,height,label='height')
     plt.legend()
     plt.savefig('ans.png')
