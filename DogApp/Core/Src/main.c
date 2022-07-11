@@ -239,67 +239,16 @@ int main(void)
   fdcanfilter();
   HAL_TIM_Base_Start(&htim7);
 
-
-  // HAL_ADC_Start_DMA(&hadc1, adc_buf, 256);
-  // HAL_ADC_Start(&hadc1);
-  // HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
-
-
-  // ST_LOGI("Starting imu ...");
-  // imu_start();
+  ST_LOGI("Starting imu ...");
+  imu_start();
 
   ST_LOGI("System Start. Starting OS...");
-
-  // for (int i = 0; i<1; i++){
-    // HAL_ADC_Start_DMA(&hadc1, adc_buf, 256);
-    // HAL_Delay(500);
-    // uint32_t v = 0;
-    // SCB_InvalidateDCache_by_Addr(adc_buf, 256 * 4);
-    // for (int i = 0; i < 16; i++){
-    //   v += adc_buf[i];
-    // }
-    // v /= 16;
-    // ST_LOGI("voltage:%.2f V (%d)", v * 3.3 * 13 / 65536.f, v);
-    // HAL_Delay(200);
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-    uint32_t v = HAL_ADC_GetValue(&hadc1);
-    HAL_ADC_Stop(&hadc1);
-    ST_LOGI("voltage:%.2f V (%d)", v * 3.3 * 13 / 65536.f, v);
-    // HAL_Delay(200);
-  // }
-  
-  // // target_yaw = yaw;
-  // while (1){
-  //  FDCAN_TxHeaderTypeDef txHeader;
-  //   uint8_t pTxData = {0,0,0,0,0,0,0,0};
-  //   uint32_t freeLevel;
-  //   txHeader.Identifier = 0x200;
-  //   txHeader.IdType = FDCAN_STANDARD_ID;
-  //   txHeader.TxFrameType = FDCAN_DATA_FRAME;
-  //   txHeader.DataLength = FDCAN_DLC_BYTES_8;
-  //   txHeader.BitRateSwitch = FDCAN_BRS_OFF;
-  //   txHeader.FDFormat = FDCAN_CLASSIC_CAN;
-  //   txHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-  //   txHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-  //   txHeader.MessageMarker = 0;
-  //   if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &txHeader, pTxData) != HAL_OK){
-  //     ST_LOGE("Ret Error");
-  //     Error_Handler();
-  //   }
-    
-  //   freeLevel = HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2);
-  //   if (freeLevel == 0){
-  //     ST_LOGE("hfdcan%d no free fifo : %lu", &hfdcan2 == &hfdcan1 ? 1 : 2, freeLevel);
-  //     // Error_Handler();
-  //   }else{
-  //     uart_printf("fifo : %d\n", freeLevel);
-  //   }
-  //   HAL_Delay(100);
-  // }
-  
-
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+  uint32_t v = HAL_ADC_GetValue(&hadc1);
+  HAL_ADC_Stop(&hadc1);
+  ST_LOGI("voltage:%.2f V (%d)", v * 3.3 * 13 / 65536.f, v);
   
   /* USER CODE END 2 */
 

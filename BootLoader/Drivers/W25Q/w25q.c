@@ -239,6 +239,9 @@ uint8_t W25Qx_QSPI_Write(uint8_t *pData, uint32_t WriteAddr, uint32_t Size)
 	current_size = current_addr - WriteAddr;
  
 	/* 检查数据的大小是否小于页面中的剩余位置 */
+	if (Size == 0){
+		return QSPI_OK;
+	}
 	if (current_size > Size)
 	{
 		current_size = Size;
