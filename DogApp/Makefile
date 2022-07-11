@@ -115,12 +115,14 @@ DogSoft/CommandSystem/DogCMD_LogCfg.c \
 DogSoft/CommandSystem/DogCMD_Motor.c \
 DogSoft/CommandSystem/DogCMD_System.c \
 DogSoft/Application/DogApp_jump.c \
-DogSoft/Application/DogApp_walk.c \
-DogSoft/Application/DogApp_simpleWalk.c 
+DogSoft/Application/DogApp_walk.c 
 
 # ASM sources
 ASM_SOURCES = \
 startup_stm32h750xx.s
+
+CXX_SOURCES =  \
+DogSoft/Application/DogApp_simpleWalk.cpp
 
 
 #######################################
@@ -131,11 +133,13 @@ PREFIX = arm-none-eabi-
 # either it can be added to the PATH environment variable.
 ifdef GCC_PATH
 CC = $(GCC_PATH)/$(PREFIX)gcc
+CXX = $(GCC_PATH)/$(PREFIX)g++
 AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
 CP = $(GCC_PATH)/$(PREFIX)objcopy
 SZ = $(GCC_PATH)/$(PREFIX)size
 else
 CC = $(PREFIX)gcc
+CXX = $(PREFIX)g++
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size
@@ -227,13 +231,19 @@ all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
+# list of c++ objects
+OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CXX_SOURCES:.cpp=.o)))
+vpath %.cpp $(sort $(dir $(CXX_SOURCES)))
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
+$(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR) 
+	@$(CXX) -c $(CFLAGS) -std=c++11 $< -o $@
+	@echo "[\033[32mc++\033[0m] $@"
+
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-# @$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-	@$(CC) -c $(CFLAGS) $< -o $@
+	@$(CC) -c $(CFLAGS) -std=c11 $< -o $@
 	@echo "[\033[32m c \033[0m] $@"
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)

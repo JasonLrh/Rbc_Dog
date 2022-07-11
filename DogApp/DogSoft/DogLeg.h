@@ -1,6 +1,10 @@
 #ifndef DOG_LEG_H
 #define DOG_LEG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "DogMotor.h"
 
 typedef struct _dog_leg_input_t {
@@ -33,5 +37,9 @@ void dog_leg_set_phrase(dog_motor_single_t * motor, const dog_leg_input_t * inpu
 // void dog_leg_set()
 
 void dog_leg_set(dog_motor_single_t * motor, const dog_leg_output_t * input);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !DOG_LEG_H

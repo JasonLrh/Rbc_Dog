@@ -1,6 +1,11 @@
 #ifndef DOG_SOFT_H
 #define DOG_SOFT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "DogBody.h"
 #include "CommandSystem/DogCMD.h"
 
@@ -13,5 +18,8 @@
 #define DOG_CTRL_PERIOD_ms 5
 #define DOG_CTRL_FREQ_Hz 1000/(float)DOG_CTRL_PERIOD_ms
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !DOG_SOFT

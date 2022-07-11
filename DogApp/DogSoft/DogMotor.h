@@ -1,6 +1,10 @@
 #ifndef DOG_MOTOR_H
 #define DOG_MOTOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "main.h"
 #include "arm_math.h"
 
@@ -64,5 +68,8 @@ void dog_motor_set_Control_param(dog_motor_single_t * mt, float f_p, float f_v, 
 void dog_motor_set_angle(dog_motor_single_t * mt, float angle);
 void dog_motor_set_Mode(const dog_motor_single_t * mt, uint8_t cmd);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

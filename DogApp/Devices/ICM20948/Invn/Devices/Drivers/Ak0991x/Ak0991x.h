@@ -2,7 +2,7 @@
  * ________________________________________________________________________________________________________
  * Copyright (c) 2015-2015 InvenSense Inc. All rights reserved.
  *
- * This software, related documentation and any modifications thereto (collectively “Software”) is subject
+ * This software, related documentation and any modifications thereto (collectively ï¿½Softwareï¿½) is subject
  * to InvenSense and its licensors' intellectual property rights under U.S. and international copyright
  * and other intellectual property rights laws.
  *
@@ -144,6 +144,11 @@ int INV_EXPORT inv_ak0991x_soft_reset(struct inv_ak0991x * s);
  * @return 0 in case of success, negative value on error
  */
 int INV_EXPORT inv_ak0991x_enable_sensor(struct inv_ak0991x * s, inv_bool_t en);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* _INV_AK0991X_H_ */
 

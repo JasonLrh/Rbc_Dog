@@ -1,24 +1,41 @@
 #include "DogCMD.h"
 #include "DogMotor.h"
 
+const float reference_zero_angle[8] = {
+    -3.66, -1.22, 3.66, 1.22, 1.22, 3.66, -1.22, -3.66
+};
 
 static void config_motor(dog_motor_single_t * motor, const char * cmd){
     // motor = &(motors.raw[motor_id]);
-    float * param;
+    float new_zeroPos;
     float v_p, v_v, v_kp, v_kd, v_t;
+    uint8_t id;
     int i_param;
 
     if (cmd[1] != '\0'){
         switch (cmd[1])
         {
             case 'G':{
-                uart_printf("[M%d]\tp:%4.2f\tv:%4.2f\tt:%4.2f\n", motor->id, motor->p, motor->v, motor->t);
+                if (cmd[2] != 'Z'){
+                    uart_printf("[M%d]\tp:%4.2f\tv:%4.2f\tt:%4.2f\n", motor->id, motor->p, motor->v, motor->t);
+                } else {
+                    uart_printf("[M%d]\tzero_offset:%4.2f\n", motor->id, motor->zeroPos_offset);
+                }
             } break;
 
             case 'S':{
                 switch (cmd[2]){
                     case 'Z':{
-                        param = &(motor->zeroPos_offset);
+                        id = cmd[0] - '1';
+                        sscanf(cmd + 3, "%f", &new_zeroPos);
+                        if ( fabsf(new_zeroPos - reference_zero_angle[id]) < 25 * PI / 180.f ){
+                            motor->zeroPos_offset = new_zeroPos;
+                            ST_LOGI("update new zero pos: %.2f", new_zeroPos);
+                        } else {
+                            ST_LOGE("please check input range: %.2f", new_zeroPos);
+                        }
+
+                        dog_body_standup(-1.f, -1.f);
                     } break;
                     
                     default:{
@@ -26,8 +43,6 @@ static void config_motor(dog_motor_single_t * motor, const char * cmd){
                         return;
                     } break;
                 }
-                sscanf(cmd + 3, "%f", param);
-                uart_printf("[M%d]\tzeroPosition:%4.2f\n", motor->id, *param);
             } break;
             
             case 'F':{
@@ -119,8 +134,12 @@ void dogcmd_motors(const char * cmd){
         return;
     }
     if (all_flag){
-        for (motor_id = 0; motor_id < 8; motor_id++){
-            config_motor(&(motors.raw[motor_id]), cmd);
+        if (cmd[1] != 'S'){
+            for (motor_id = 0; motor_id < 8; motor_id++){
+                config_motor(&(motors.raw[motor_id]), cmd);
+            }
+        } else {
+            ST_LOGE("motor 'Set' not allow once for all operation");
         }
     } else {
         config_motor(&(motors.raw[motor_id]), cmd);

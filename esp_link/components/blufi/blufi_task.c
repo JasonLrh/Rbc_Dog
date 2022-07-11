@@ -27,6 +27,8 @@
 // #include "nvs_flash.h"
 #include "esp_bt.h"
 
+#include "mdns.h"
+
 #include "esp_blufi_api.h"
 #include "my_blufi.h"
 
@@ -176,11 +178,46 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
     return;
 }
 
+static void initialise_mdns(void)
+{
+    char * hostname = "dog";
+
+    //initialize mDNS
+    ESP_ERROR_CHECK( mdns_init() );
+    //set mDNS hostname (required if you want to advertise services)
+    ESP_ERROR_CHECK( mdns_hostname_set(hostname) );
+    ESP_LOGI("[initial mdns]", "mdns hostname set to: [%s]", hostname);
+    //set default mDNS instance name
+    ESP_ERROR_CHECK( mdns_instance_name_set("ESP32 with mDNS") );
+
+    //structure with TXT records
+//     mdns_txt_item_t serviceTxtData[3] = {
+//         {"board", "esp32"},
+//         {"u", "user"},
+//         {"p", "password"}
+//     };
+
+//     //initialize service
+//     ESP_ERROR_CHECK( mdns_service_add("ESP32-WebServer", "_http", "_tcp", 80, serviceTxtData, 3) );
+// #if CONFIG_MDNS_MULTIPLE_INSTANCE
+//     ESP_ERROR_CHECK( mdns_service_add("ESP32-WebServer1", "_http", "_tcp", 80, NULL, 0) );
+// #endif
+
+
+
+    //add another TXT item
+    // ESP_ERROR_CHECK( mdns_service_txt_item_set("_http", "_tcp", "path", "/foobar") );
+    //change TXT item value
+    // ESP_ERROR_CHECK( mdns_service_txt_item_set_with_explicit_value_len("_http", "_tcp", "u", "admin", strlen("admin")) );
+
+}
+
 static void initialise_wifi(void)
 {
     ESP_ERROR_CHECK(esp_netif_init());
     wifi_event_group = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
+    initialise_mdns();
     esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
     assert(sta_netif);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));

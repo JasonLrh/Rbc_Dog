@@ -246,8 +246,8 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
 
-  ST_LOGI("Starting imu ...");
-  imu_start();
+  // ST_LOGI("Starting imu ...");
+  // imu_start();
 
   ST_LOGI("System Start. Starting OS...");
 
@@ -270,7 +270,34 @@ int main(void)
     // HAL_Delay(200);
   // }
   
-  // target_yaw = yaw;
+  // // target_yaw = yaw;
+  // while (1){
+  //  FDCAN_TxHeaderTypeDef txHeader;
+  //   uint8_t pTxData = {0,0,0,0,0,0,0,0};
+  //   uint32_t freeLevel;
+  //   txHeader.Identifier = 0x200;
+  //   txHeader.IdType = FDCAN_STANDARD_ID;
+  //   txHeader.TxFrameType = FDCAN_DATA_FRAME;
+  //   txHeader.DataLength = FDCAN_DLC_BYTES_8;
+  //   txHeader.BitRateSwitch = FDCAN_BRS_OFF;
+  //   txHeader.FDFormat = FDCAN_CLASSIC_CAN;
+  //   txHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+  //   txHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  //   txHeader.MessageMarker = 0;
+  //   if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &txHeader, pTxData) != HAL_OK){
+  //     ST_LOGE("Ret Error");
+  //     Error_Handler();
+  //   }
+    
+  //   freeLevel = HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2);
+  //   if (freeLevel == 0){
+  //     ST_LOGE("hfdcan%d no free fifo : %lu", &hfdcan2 == &hfdcan1 ? 1 : 2, freeLevel);
+  //     // Error_Handler();
+  //   }else{
+  //     uart_printf("fifo : %d\n", freeLevel);
+  //   }
+  //   HAL_Delay(100);
+  // }
   
 
   
@@ -466,6 +493,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
+extern void JumpToBootLoader(void);
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -477,6 +505,8 @@ void Error_Handler(void)
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) != hfdcan1.Init.TxFifoQueueElmtsNbr);
   // while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) != hfdcan2.Init.TxFifoQueueElmtsNbr);
   ST_LOGD("[Error_Handler] system halt; restart need");
+  JumpToBootLoader();
+  
   // __disable_irq();
   while (1)
   {

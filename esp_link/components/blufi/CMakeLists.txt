@@ -4,5 +4,5 @@ idf_component_register(
         INCLUDE_DIRS
             "Inc"
         REQUIRES
-            bt tcp-server uart-st
+            bt tcp-server uart-st mdns
 )

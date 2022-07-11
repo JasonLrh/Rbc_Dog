@@ -35,10 +35,10 @@ typedef struct _dog_leg_output_t
 
 #define BANDWIDTH 0.75f
 #define HEIGH_DIFF 0.01f
-#define PARAM_A 11.0
+#define PARAM_A 9.0
 
-#define H 0.62f
-#define V 0.6f
+#define H 0.38f
+#define V 0.5f
 
 #define PERIOD_CNT 660
 
