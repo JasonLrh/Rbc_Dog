@@ -12,8 +12,8 @@ void dog_leg_set(dog_motor_single_t * motor, const dog_leg_output_t * input){
 }
 
 void dog_leg_set_phrase(dog_motor_single_t * motor, const dog_leg_input_t * input){
-    float d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * input->dist * LEG_LEN_UPPER;
-
+    // float d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * input->dist * LEG_LEN_UPPER;
+    float d = (LEG_LEN_LOWER + LEG_LEN_UPPER) * input->dist ;
     // check input valid
     if (input->dist < 0.2 || input->dist > 0.9){
         return;

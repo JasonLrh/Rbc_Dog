@@ -132,7 +132,7 @@ void dog_body_simpleLinerWalk(){
 void dog_body_standup(float kp, float kv){
     const static dog_leg_input_t vec = {
         .theta = 0.f,
-        .dist = 0.30f,
+        .dist = 0.37795f,
     };
 
     if (kp > 0.f){

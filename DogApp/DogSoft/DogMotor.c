@@ -31,7 +31,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 	FDCAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
 
-
     while( HAL_FDCAN_GetRxFifoFillLevel(hfdcan, FDCAN_RX_FIFO0) > 0 ){
         HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_header, rx_data);
         switch ( rx_header.Identifier )
@@ -71,17 +70,17 @@ void dog_motor_init(void){
     motors.raw[7].invers = 1;
 
     // TODO: set initial angle of device
-    motors.raw[0].zeroPos_offset = - 3.74;
-    motors.raw[1].zeroPos_offset = - 1.31;
+    motors.raw[0].zeroPos_offset = - 3.62;
+    motors.raw[1].zeroPos_offset = - 1.22;
 
-    motors.raw[2].zeroPos_offset =   3.72;
-    motors.raw[3].zeroPos_offset =   1.30;
+    motors.raw[2].zeroPos_offset =   3.65;
+    motors.raw[3].zeroPos_offset =   1.24;
 
-    motors.raw[4].zeroPos_offset =   1.33;
-    motors.raw[5].zeroPos_offset =   3.66;
+    motors.raw[4].zeroPos_offset =   1.28;
+    motors.raw[5].zeroPos_offset =   3.62;
 
-    motors.raw[6].zeroPos_offset = - 1.35;
-    motors.raw[7].zeroPos_offset = - 3.60;
+    motors.raw[6].zeroPos_offset = - 1.24;
+    motors.raw[7].zeroPos_offset = - 3.55;
 
     for (int i = 0; i < INITIALNUM; i++) {
         motors.raw[i].id = motor_group_id_t[i];
@@ -92,7 +91,7 @@ void dog_motor_init(void){
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);
         osDelay(1);
         dog_motor_set_Control_param(&(motors.raw[i]), 0.f, 0.f, 0.f, 0.f, 0.f);
-        osDelay(1);
+        osDelay(2000);
         // TODO:
     }
     osDelay(200);

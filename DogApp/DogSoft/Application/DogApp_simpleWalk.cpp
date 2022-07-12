@@ -5,13 +5,13 @@
 #include "imu.h"
 
 #define BANDWIDTH 0.75f
-#define HEIGH_DIFF 0.01f
-#define PARAM_A 9.0
+#define HEIGH_DIFF 0.00f
+// #define PARAM_A 9.0
 
 // #define H 0.38f
 // #define V 0.54f
 
-#define INITIAL_PERIOD_CNT 220
+#define INITIAL_PERIOD_CNT 440
 
 class singleLeg {
 public:
@@ -32,11 +32,11 @@ public:
             lo.m[i].vel = 0;
             lo.m[i].T = 0.f;
             if (phrase < BANDWIDTH){
-                lo.m[i].kp = 45.3f;
-                lo.m[i].kv = 0.2f;
+                lo.m[i].kp = 48.3f;
+                lo.m[i].kv = 1.2f;
             } else {
-                lo.m[i].kp = 25.3f;
-                lo.m[i].kv = 0.06f;
+                lo.m[i].kp = 12.3f;
+                lo.m[i].kv = 1.3f;
             }
         }
         // height += H;
@@ -47,16 +47,35 @@ public:
             theta = atanf(vel/height * (phrase - BANDWIDTH / 2)) ; // TODO : add some offset here
             dist = (height - HEIGH_DIFF * sinf(phrase * 2 * PI)) / cosf(theta);
         } else {
-            theta = (1 + BANDWIDTH - 2 * phrase) * atanf(vel/height * (BANDWIDTH / 2)) / (1.f - BANDWIDTH);
+            float half_line_len = vel * (LEG_LEN_UPPER + LEG_LEN_LOWER) * BANDWIDTH / 2 ;
+            float h_to_line = height * (LEG_LEN_UPPER + LEG_LEN_LOWER);
 
-            float mid = (1 + BANDWIDTH) / 2;
-            float new_phrase = phrase - mid;
-            float t = (height + HEIGH_DIFF) - PARAM_A * (BANDWIDTH - 1) * (BANDWIDTH - 1) / 4 ;
-            float y = PARAM_A * new_phrase * new_phrase + t;
+            float tuo_dist = sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
+            float tuo_off = - h_to_line + tuo_dist;
 
-            dist = ( y ) / cosf(theta);
+            float edge_angle = atan2f(tuo_dist, half_line_len);
+            
+
+            float tuo_time = - edge_angle + (phrase - BANDWIDTH) * (PI + 2 * edge_angle) / (1 - BANDWIDTH);
+
+            float x = tuo_a * half_line_len * cosf(tuo_time);
+            float y = tuo_b * half_line_len * sin(tuo_time) + tuo_off;
+
+            dist = sqrtf(x*x + y*y) / (LEG_LEN_LOWER + LEG_LEN_UPPER);
+
+            theta =  atan2f(y, x) + PI / 2;
+
+            // theta = (1 + BANDWIDTH - 2 * phrase) * atanf(vel/height * (BANDWIDTH / 2)) / (1.f - BANDWIDTH);
+
+            // float mid = (1 + BANDWIDTH) / 2;
+            // float new_phrase = phrase - mid;
+            // float t = (height + HEIGH_DIFF) - PARAM_A * (BANDWIDTH - 1) * (BANDWIDTH - 1) / 4 ;
+            // float y = PARAM_A * new_phrase * new_phrase + t;
+
+            // dist = ( y ) / cosf(theta);
         }
-        d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * dist * LEG_LEN_UPPER;
+        // d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * dist * LEG_LEN_UPPER;
+        d = (LEG_LEN_LOWER + LEG_LEN_UPPER) * dist;
         dig_angle_half = acosf((LEG_LEN_UPPER*LEG_LEN_UPPER - LEG_LEN_LOWER*LEG_LEN_LOWER + d*d)/(2.f * d * LEG_LEN_UPPER)); // f
         lo.m[0].pos =  - theta + dig_angle_half;
         lo.m[1].pos =    theta + dig_angle_half;
@@ -69,7 +88,10 @@ public:
 private:
     dog_leg_output_t lo;
     float phrase_diff;
-    dog_motor_single_t * m;    
+    dog_motor_single_t * m;
+
+    float tuo_a = 5.f / 4.f;
+    float tuo_b = 3.f / 4.f;
 };
 
 class dogBoady{
@@ -115,7 +137,7 @@ private:
     uint32_t __step = 0;
     uint32_t PERIOD_CNT = INITIAL_PERIOD_CNT;
 
-    float base_h = 0.38f;
+    float base_h = 0.42f;
     float base_v = 0.54f;
 
     arm_pid_instance_f32 pidPitch = {
@@ -133,10 +155,16 @@ private:
     float diff_v[4] = {0.f,0.f,0.f,0.f};
 
     singleLeg m[4]{
-        singleLeg(motors.leg.l_f, 0.25 * 0),
-        singleLeg(motors.leg.r_f, 0.25 * 1),
-        singleLeg(motors.leg.l_b, 0.25 * 2),
-        singleLeg(motors.leg.r_b, 0.25 * 3),
+        singleLeg(motors.leg.l_f, 0.125 * 1),
+        singleLeg(motors.leg.r_f, 0.125 * 3),
+        singleLeg(motors.leg.l_b, 0.125 * 5),
+        singleLeg(motors.leg.r_b, 0.125 * 7)
+
+
+        // singleLeg(motors.leg.l_f, 0.125 * 1),
+        // singleLeg(motors.leg.r_f, 0.125 * 1),
+        // singleLeg(motors.leg.l_b, 0.125 * 1),
+        // singleLeg(motors.leg.r_b, 0.125 * 1)
     };
 
     void update_target(void){

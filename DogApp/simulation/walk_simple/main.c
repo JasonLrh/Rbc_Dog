@@ -34,11 +34,12 @@ typedef struct _dog_leg_output_t
 // ************************************************************************************************************
 
 #define BANDWIDTH 0.75f
-#define HEIGH_DIFF 0.01f
+#define HEIGH_DIFF 0.0f
 #define PARAM_A 9.0
 
-#define H 0.38f
-#define V 0.5f
+// #define H 0.37795f
+#define H 0.42f
+#define V 0.54f
 
 #define PERIOD_CNT 660
 
@@ -47,6 +48,9 @@ static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_
     // float height;
     // float vel;
     float theta, dist, dig_angle_half, d;
+    float __phrase_raw = phrase;
+
+    
 
     while (phrase > 1.0){ // to 0~1
         phrase -= 1.0;
@@ -68,21 +72,45 @@ static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_
         dist = (height + HEIGH_DIFF * cosf(phrase * 2 * PI / BANDWIDTH)) / cosf(theta);
 
     } else {
-        theta = (1 + BANDWIDTH - 2 * phrase) * atanf(vel/height * (BANDWIDTH / 2)) / (1.f - BANDWIDTH);
+        float half_line_len = vel * (LEG_LEN_UPPER + LEG_LEN_LOWER) * BANDWIDTH / 2 ;
+        float h_to_line = height * (LEG_LEN_UPPER + LEG_LEN_LOWER);
 
-        float mid = (1 + BANDWIDTH) / 2;
-        float new_phrase = phrase - mid;
-        float t = (height + HEIGH_DIFF) - PARAM_A * (BANDWIDTH - 1) * (BANDWIDTH - 1) / 4 ;
-        float y = PARAM_A * new_phrase * new_phrase + t;
-        dist = ( y ) / cosf(theta);
+        float tuo_a = 5.f / 4.f;
+        float tuo_b = 3.f / 4.f;
+        float tuo_dist = sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
+        float tuo_off = - h_to_line + tuo_dist;
+
+        float edge_angle = atan2f(tuo_dist, half_line_len);
+        
+
+        float tuo_time = - edge_angle + (phrase - BANDWIDTH) * (PI + 2 * edge_angle) / (1 - BANDWIDTH);
+
+        float x = tuo_a * half_line_len * cosf(tuo_time);
+        float y = tuo_b * half_line_len * sin(tuo_time) + tuo_off;
+
+        dist = sqrtf(x*x + y*y) / (LEG_LEN_LOWER + LEG_LEN_UPPER);
+
+        theta =  atan2f(y, x) + PI / 2;
+
+
+        // theta = (1 + BANDWIDTH - 2 * phrase) * atanf(vel/height * (BANDWIDTH / 2)) / (1.f - BANDWIDTH);
+
+        // float mid = (1 + BANDWIDTH) / 2;
+        // float new_phrase = phrase - mid;
+        // float t = (height + HEIGH_DIFF) - PARAM_A * (BANDWIDTH - 1) * (BANDWIDTH - 1) / 4 ;
+        // float y = PARAM_A * new_phrase * new_phrase + t;
+        // dist = ( y ) / cosf(theta);
     }
-    d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * dist * LEG_LEN_UPPER;
+    // d = LEG_LEN_LOWER - LEG_LEN_UPPER + 2 * dist * LEG_LEN_UPPER;
+    d = (LEG_LEN_LOWER + LEG_LEN_UPPER) * dist ;
 
     dig_angle_half = acosf((LEG_LEN_UPPER*LEG_LEN_UPPER - LEG_LEN_LOWER*LEG_LEN_LOWER + d*d)/(2.f * d * LEG_LEN_UPPER)); // f
     lo->m[0].pos =  - theta + dig_angle_half;
     lo->m[1].pos =    theta + dig_angle_half;
 
-    fprintf(fp, "%.5f,%.5f,%.5f,%.5f,%.5f\n", phrase,  dist * cosf(theta), dist * cosf(theta), theta, d);
+    fprintf(fp, "%.5f,%.5f,%.5f,%.5f,%.5f\n", __phrase_raw, - lo->m[0].pos, lo->m[1].pos, d, theta);
+    // fprintf(fp, "%.5f,%.5f,%.5f,%.5f,%.5f\n", __phrase_raw, d, theta, dist * cosf(theta), 0.f);
+    // fprintf(fp, "%.5f,%.5f,%.5f,%.5f,%.5f\n", __phrase_raw, dist * cosf(theta), dist * cosf(theta), dist * cosf(theta), 0.f);
 
 }
 
@@ -92,7 +120,7 @@ int main(void)
 
     fp = fopen("data.csv", "w");
 
-    for (uint16_t step = 0; step < PERIOD_CNT; step++)
+    for (uint16_t step = 0; step < 1.5 * PERIOD_CNT; step++)
     {
         dog_leg_output_t out;
 

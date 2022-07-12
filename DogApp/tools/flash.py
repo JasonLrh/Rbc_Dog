@@ -111,7 +111,7 @@ if __name__ == '__main__':
                     break
             # if False:
             if isStart > 0: # send pack to flash
-                total_pack_to_send = bin_len // bank_size
+                total_pack_to_send = bin_len // bank_size + 1
                 for pack_num in range(total_pack_to_send):
                     ret = ''
                     while ret != 'POK\n':
