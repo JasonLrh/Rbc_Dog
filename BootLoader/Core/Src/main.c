@@ -59,16 +59,16 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t program_buff_1 [W25QxJV_PAGE_SIZE * 2] __attribute__((aligned(4)));
-typedef struct 
+static uint8_t __attribute__((aligned(4))) program_buff_1 [W25QxJV_PAGE_SIZE * 2];
+typedef struct __packed
 {
   uint32_t len;
   uint16_t pack;
   char HeadDescipt;
-} __attribute__((packed)) pack_head_t;
+} pack_head_t;
 const pack_head_t * header_unpacker = (pack_head_t *)program_buff_1;
 
-uint8_t header_ret_str[5];
+static uint8_t __attribute__((aligned(4)))  header_ret_str[7];
 
 void BootSerialEvent(UART_HandleTypeDef *huart, uint16_t Pos){
   if (Pos < sizeof(pack_head_t)){
@@ -101,7 +101,7 @@ void BootSerialEvent(UART_HandleTypeDef *huart, uint16_t Pos){
       }
     }
     HAL_UART_Transmit(huart, header_ret_str, 7, HAL_MAX_DELAY);
-  } else if (Pos == header_unpacker->len + 6 && header_unpacker->HeadDescipt == 'D') {
+  } else if (Pos == header_unpacker->len + sizeof(pack_head_t) && header_unpacker->HeadDescipt == 'D') {
     // valid program buff
     /*
       len: packlen
@@ -326,7 +326,7 @@ int main(void)
   //   HAL_GPIO_TogglePin(LD_OB_GPIO_Port, LD_OB_Pin);
   // }
 
-  uint16_t Pos;
+  // uint16_t Pos;
 
   if (W25Qx_QSPI_Init()){
     Error_Handler();
@@ -337,99 +337,18 @@ int main(void)
 
     BootArgs = 0;
     // wait for flash and load
-    // if (HAL_UART_RegisterRxEventCallback(&huart8, BootSerialEvent) != HAL_OK){
-    //   Error_Handler();
-    // }
-    if (HAL_GPIO_ReadPin(APP_BOOT_GPIO_Port, APP_BOOT_Pin) == GPIO_PIN_SET){
-      if (HAL_UARTEx_ReceiveToIdle(&huart8, program_buff_1, W25QxJV_PAGE_SIZE * 2, &Pos, HAL_MAX_DELAY) != HAL_OK){
-        __set_FAULTMASK(1);
-        NVIC_SystemReset();
-      }
-    }else{
-      while (HAL_UARTEx_ReceiveToIdle(&huart8, program_buff_1, W25QxJV_PAGE_SIZE * 2, &Pos, HAL_MAX_DELAY) != HAL_OK){
-      }
+    if (HAL_UART_RegisterRxEventCallback(&huart8, BootSerialEvent) != HAL_OK){
+      Error_Handler();
     }
-// debug
-while (1){
-  if (Pos < sizeof(pack_head_t)){
-    break;
-  }
-  if (header_unpacker->len != 0 && header_unpacker->pack == 0xFFFF && header_unpacker->HeadDescipt == 'H'){
-    // start pack
-    /*
-      len: program size
-      pack : 0xFFFF
-      HeadDscipt: 'H'
-
-      return 
-      pack & len: pagesize
-      HeadDscipt: 'S'
-      'E' if error
-    */
-
-    pack_head_t * ret_head = (pack_head_t *)header_ret_str;
-    ret_head->pack = ret_head->len = W25QxJV_PAGE_SIZE;
-    ret_head->HeadDescipt = 'S';
-
-    // erase flash
-    for (uint32_t i = 0; i <= (header_unpacker->len / W25QxJV_SUBSECTOR_SIZE); i++)
-    {
-      if (W25Qx_QSPI_Erase_Block(i*W25QxJV_SUBSECTOR_SIZE) != QSPI_OK)
-      {
-        ret_head->HeadDescipt = 'E';
-        break;
-      }
-    }
-    HAL_UART_Transmit(&huart8, header_ret_str, 7, HAL_MAX_DELAY);
-  } else if (Pos == header_unpacker->len + sizeof(pack_head_t) && header_unpacker->HeadDescipt == 'D') {
-    // valid program buff
-    /*
-      len: packlen
-      pack : pack_count
-      HeadDscipt: 'D'
-
-      return 
-      err : "PER\n" 
-      success: "POK\n"
-    */
-    if (W25Qx_QSPI_Write(program_buff_1 + sizeof(pack_head_t), header_unpacker->pack * W25QxJV_PAGE_SIZE, header_unpacker->len) != QSPI_OK) {
-      HAL_UART_Transmit(&huart8, (uint8_t *)"PER\n", 4, HAL_MAX_DELAY);
-    } else {
-      HAL_UART_Transmit(&huart8, (uint8_t *)"POK\n", 4, HAL_MAX_DELAY);
-    }
-  } else if (header_unpacker->len == 0 && header_unpacker->pack == 0xFFFF) {
-    switch (header_unpacker->HeadDescipt)
-    {
-    case 'R':{
-      // RST into app
-      BootArgs = 0;
+    if (HAL_UARTEx_ReceiveToIdle_IT(&huart8, program_buff_1, W25QxJV_PAGE_SIZE * 2) != HAL_OK){
       __set_FAULTMASK(1);
       NVIC_SystemReset();
-    } break;
-
-    case 'E':{
-      is_program_done = 1;
-    } break;
-    
-    default:
-      break;
     }
-
-  } else {
-    HAL_UART_Transmit(&huart8, (uint8_t *)"PER\n", 4, HAL_MAX_DELAY);
-  }
-
-
-  if (HAL_UARTEx_ReceiveToIdle(&huart8, program_buff_1, W25QxJV_PAGE_SIZE * 2, &Pos, HAL_MAX_DELAY) != HAL_OK){
-    Error_Handler();
-  }
-}
-
-// end debug
 
     while (is_program_done == 0)
     {
-      // program_page(NULL);
+      HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+      HAL_Delay(50);
     }
   }
 

@@ -159,12 +159,22 @@ static void st_serial_rx_cb(int sock, char * cmd, uint16_t len){
 }
 
 void function_after_get_ip(void){
+
+    static uart_st_init_t conf = {
+        .baud = 1500000,
+        // .baud = 921600,
+        .pin_tx = GPIO_NUM_4,
+        .pin_rx = GPIO_NUM_5,
+        .pin_boot = GPIO_NUM_2 // HandsFree (PE15 in stm32)
+    };
+    uart_st_init(&conf);
     tcp_creat_server(&st_ota_conf);
     tcp_creat_server(&st_serial_conf);
     
 }
 
 void function_after_lost_ip(void){
+    uart_st_deinit();
     tcp_end_server(&st_ota_conf);
     tcp_end_server(&st_serial_conf);
 }

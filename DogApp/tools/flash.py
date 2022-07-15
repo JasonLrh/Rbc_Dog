@@ -24,7 +24,7 @@ class cmd_com:
 
 class serial_com:
     def __init__(self, s_name:str) -> None:
-        self.__com = serial.serial_for_url(s_name + ':3334',  timeout=2)
+        self.__com = serial.serial_for_url(s_name + ':3334',  timeout=0.3)
     
     def __send_cmd(self, cmd):
 
@@ -84,14 +84,23 @@ if __name__ == '__main__':
             bank_size = 0
 
             retry = 0
+            err_cnt = 0
 
             print("Header :", end=' ', flush=True)
             while (1): # start header
                 rxb = ser_com.read()
+
                 rx_str += rxb
-                print("%02X"%int.from_bytes(rxb, 'little'), end=' ', flush=True)
+                # print("%d"%(len(rxb)), end=' : ', flush=True)
+                if (len(rxb) > 0):
+                    print("%02X"%int.from_bytes(rxb, 'little'), end=' ', flush=True)
+                else:
+                    err_cnt += 1
+                    if err_cnt >= 10:
+                        print("no return. exit")
+                        exit(0)
                 
-                if len(rx_str) == 7:
+                if len(rx_str) >= 7:
                     if rxb.decode() == 'S':
                         print("start (head ok)")
                         isStart = 1

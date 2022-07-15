@@ -76,7 +76,7 @@ static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_
         float h_to_line = height * (LEG_LEN_UPPER + LEG_LEN_LOWER);
 
         float tuo_a = 5.f / 4.f;
-        float tuo_b = 3.f / 4.f;
+        float tuo_b = 2.f / 5.f;
         float tuo_dist = sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
         float tuo_off = - h_to_line + tuo_dist;
 

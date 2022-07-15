@@ -84,14 +84,18 @@ void dog_motor_init(void){
 
     for (int i = 0; i < INITIALNUM; i++) {
         motors.raw[i].id = motor_group_id_t[i];
-        motors.raw[i].hcan = &hfdcan1;
+        // if (i < 4){
+        //     motors.raw[i].hcan = &hfdcan2;
+        // }else{
+            motors.raw[i].hcan = &hfdcan1;
+        // }
         motors.raw[i].monitor = 0;
         motors.raw[i].ctrl.valid = 0;
         arm_pid_init_f32(&(motors.raw[i].ctrl.P), 1);
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);
-        osDelay(1);
+        osDelay(5);
         dog_motor_set_Control_param(&(motors.raw[i]), 0.f, 0.f, 0.f, 0.f, 0.f);
-        osDelay(2000);
+        osDelay(5);
         // TODO:
     }
     osDelay(200);

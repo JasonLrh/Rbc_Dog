@@ -28,6 +28,7 @@ extern uart_system_tate_t SysState;
 
 
 void uart_st_init(uart_st_init_t * conf);
+void uart_st_deinit(void);
 
 void uart_st_set_boot_mode(bool isEnterBoot);
 void uart_st_write(const char * cmd, int len);

@@ -35,15 +35,4 @@ void app_main(void)
     my_blufi_start();
 
     ESP_LOGI(TAG, "BLUFI OK");
-
-    uart_st_init_t conf = {
-        .baud = 1500000,
-        // .baud = 921600,
-        .pin_tx = GPIO_NUM_4,
-        .pin_rx = GPIO_NUM_5,
-        .pin_boot = GPIO_NUM_2 // HandsFree (PE15 in stm32)
-    };
-
-    uart_st_init(&conf);
-
 }

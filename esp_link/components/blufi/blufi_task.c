@@ -180,7 +180,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 
 static void initialise_mdns(void)
 {
-    char * hostname = "dog";
+    char * hostname = "pyf";
 
     //initialize mDNS
     ESP_ERROR_CHECK( mdns_init() );

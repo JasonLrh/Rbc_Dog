@@ -66,3 +66,9 @@ void uart_st_init(uart_st_init_t * conf){
 
     //Create a task to handler UART event from ISR
 }
+
+void uart_st_deinit(void){
+    uart_driver_delete(EX_UART_NUM);
+    uart_flush_input(EX_UART_NUM);
+    xQueueReset(uart0_queue);
+}

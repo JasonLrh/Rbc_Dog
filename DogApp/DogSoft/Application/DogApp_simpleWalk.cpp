@@ -11,11 +11,11 @@
 // #define H 0.38f
 // #define V 0.54f
 
-#define INITIAL_PERIOD_CNT 440
+#define INITIAL_PERIOD_CNT 330
 
 class singleLeg {
 public:
-    singleLeg(dog_motor_single_t * leg,float _phase_diff){
+    singleLeg(dog_motor_single_t * leg, float _phase_diff){
         phrase_diff = _phase_diff;
         m = leg;
     }
@@ -31,13 +31,16 @@ public:
         for (int i = 0; i<2;i++){
             lo.m[i].vel = 0;
             lo.m[i].T = 0.f;
-            if (phrase < BANDWIDTH){
-                lo.m[i].kp = 48.3f;
-                lo.m[i].kv = 1.2f;
-            } else {
-                lo.m[i].kp = 12.3f;
-                lo.m[i].kv = 1.3f;
-            }
+
+            lo.m[i].kp = 30.3f;
+            lo.m[i].kv = 1.8f;
+            // if (phrase < BANDWIDTH){
+            //     lo.m[i].kp = 30.3f;
+            //     lo.m[i].kv = 1.8f;
+            // } else {
+            //     lo.m[i].kp = 12.3f;
+            //     lo.m[i].kv = 0.1f;
+            // }
         }
         // height += H;
 
@@ -63,7 +66,7 @@ public:
 
             dist = sqrtf(x*x + y*y) / (LEG_LEN_LOWER + LEG_LEN_UPPER);
 
-            theta =  atan2f(y, x) + PI / 2;
+            theta = atan2f(y, x) + PI / 2;
 
             // theta = (1 + BANDWIDTH - 2 * phrase) * atanf(vel/height * (BANDWIDTH / 2)) / (1.f - BANDWIDTH);
 
@@ -91,7 +94,7 @@ private:
     dog_motor_single_t * m;
 
     float tuo_a = 5.f / 4.f;
-    float tuo_b = 3.f / 4.f;
+    float tuo_b = 2.f / 5.f;
 };
 
 class dogBoady{
