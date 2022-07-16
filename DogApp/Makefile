@@ -114,7 +114,6 @@ DogSoft/CommandSystem/DogCMD_Legfunction.c \
 DogSoft/CommandSystem/DogCMD_LogCfg.c \
 DogSoft/CommandSystem/DogCMD_Motor.c \
 DogSoft/CommandSystem/DogCMD_System.c \
-DogSoft/Application/DogApp_jump.c \
 DogSoft/Application/DogApp_walk.c 
 
 # ASM sources
@@ -122,7 +121,9 @@ ASM_SOURCES = \
 startup_stm32h750xx.s
 
 CXX_SOURCES =  \
-DogSoft/Application/DogApp_simpleWalk.cpp
+DogSoft/Application/DogApp_simpleWalk.cpp \
+DogSoft/Application/DogApp_jump.cpp \
+DogSoft/Application/DogApp_upstaris.cpp 
 
 
 #######################################

@@ -1,7 +1,11 @@
 #include "DogCMD.h"
+#include "Application/DogApp.h"
 
 extern FDCAN_HandleTypeDef hfdcan1;
-uint8_t tim_queue_enable = 0;
+volatile uint8_t tim_queue_enable = 0;
+
+volatile dog_app_choices app = APP_WALK;
+volatile int32_t lr_cnt = 0;
 void dogcmd_system(const char * cmd){
     float kp, kv;
     if (cmd[0] != '\0'){
@@ -19,9 +23,15 @@ void dogcmd_system(const char * cmd){
                 switch (cmd[1])
                 {
                     case 'W':
-                        // HAL_TIM_Base_Start_IT(&htim6);
                         tim_queue_enable = 1;
+                        app = APP_WALK;
                         break;
+                    
+                    case 'J':
+                        tim_queue_enable = 1;
+                        app = APP_JUMP;
+                        break;
+                    
                     
                     case 'U':
                         sscanf(cmd + 2, "%f,%f", &kp, &kv);
@@ -46,6 +56,24 @@ void dogcmd_system(const char * cmd){
                 }
 
             } break;
+
+            case 'L':{
+                if (lr_cnt < 0){
+                    lr_cnt = 0;
+                } else {
+                    lr_cnt += 1;
+                }
+                // ST_LOGD("lr_cnt:%d", lr_cnt);
+            }break;
+
+            case 'R':{
+                if (lr_cnt > 0){
+                    lr_cnt = 0;
+                } else {
+                    lr_cnt -= 1;
+                }                
+                // ST_LOGD("lr_cnt:%d", lr_cnt);
+            }break;
 
             default:{
                 ST_LOGE("Invalid CMD");

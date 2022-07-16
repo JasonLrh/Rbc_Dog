@@ -85,7 +85,8 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern arm_pid_instance_f32 pid_yaw;
 // static float target_angle;
-extern uint8_t tim_queue_enable;
+extern volatile uint8_t tim_queue_enable;
+extern volatile dog_app_choices app;
 
 #ifdef USE_TIMER_GEN_STEP
 extern osMessageQId qRobotTimerUpHandle;
@@ -157,7 +158,20 @@ void RobotOutTask(void const * argument)
     {
       // ST_LOGI("TU");
       // dogapp_walk(); // TODO : check direction here
-      dogapp_simpleWalk();
+      switch (app)
+      {
+      case APP_WALK:
+        dogapp_simpleWalk();
+        break;
+      
+      case APP_JUMP:
+        dogapp_jumper();
+        break;
+
+      default:
+        break;
+      }
+
       cnt++;
       if (cnt >= 500){
         HAL_GPIO_TogglePin(LD_R_GPIO_Port, LD_R_Pin);

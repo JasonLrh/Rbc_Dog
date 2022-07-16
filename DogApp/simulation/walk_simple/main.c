@@ -33,15 +33,15 @@ typedef struct _dog_leg_output_t
 
 // ************************************************************************************************************
 
-#define BANDWIDTH 0.75f
+#define BANDWIDTH 0.875f
 #define HEIGH_DIFF 0.0f
 #define PARAM_A 9.0
 
 // #define H 0.37795f
-#define H 0.42f
-#define V 0.54f
+#define H 0.44f
+#define V 0.8f
 
-#define PERIOD_CNT 660
+#define PERIOD_CNT 170
 
 static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_output_t * lo){
     // static float tgc_yaw = 0.f;

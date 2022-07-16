@@ -48,7 +48,7 @@
 
 /* USER CODE END Variables */
 osThreadId robotOutTaskHandle;
-uint32_t robotOutTaskBuffer[ 512 ];
+uint32_t robotOutTaskBuffer[ 1024 ];
 osStaticThreadDef_t robotOutTaskControlBlock;
 osThreadId serialCmdTaskHandle;
 uint32_t serialCmdTaskBuffer[ 512 ];
@@ -168,7 +168,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of robotOutTask */
-  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 512, robotOutTaskBuffer, &robotOutTaskControlBlock);
+  osThreadStaticDef(robotOutTask, RobotOutTask, osPriorityNormal, 0, 1024, robotOutTaskBuffer, &robotOutTaskControlBlock);
   robotOutTaskHandle = osThreadCreate(osThread(robotOutTask), NULL);
 
   /* definition and creation of serialCmdTask */

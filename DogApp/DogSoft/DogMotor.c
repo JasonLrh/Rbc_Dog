@@ -103,6 +103,7 @@ void dog_motor_init(void){
         dog_motor_set_Mode(&(motors.raw[i]), CMD_ZERO_POSITION);
         osDelay(1);
     }
+
     osDelay(200);
     for (int i = 0; i < INITIALNUM; i++) {
         dog_motor_set_Mode(&(motors.raw[i]), CMD_MOTOR_MODE);

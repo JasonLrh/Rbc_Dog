@@ -11,7 +11,7 @@
 // #define H 0.38f
 // #define V 0.54f
 
-#define INITIAL_PERIOD_CNT 330
+#define INITIAL_PERIOD_CNT 150
 
 class singleLeg {
 public:
@@ -97,6 +97,8 @@ private:
     float tuo_b = 2.f / 5.f;
 };
 
+extern volatile int32_t lr_cnt;
+
 class dogBoady{
 public:
     dogBoady(float _yaw){
@@ -122,12 +124,21 @@ public:
 
 
     void update_walk(void){ // liner
+        if (is_init == 0){
+            is_init = 1;
+            target_yaw = yaw;
+        }
+
         float phrase = __step++ / float(PERIOD_CNT);
         __step = __step >= PERIOD_CNT ? 0 : __step;
-        m[0].simpleWalk_generator(phrase, base_h,base_v,0);
-        m[1].simpleWalk_generator(phrase, base_h,base_v,0);
-        m[2].simpleWalk_generator(phrase, base_h,base_v,0);
-        m[3].simpleWalk_generator(phrase, base_h,base_v,0);
+        // float diff_v = target_yaw - yaw; // < 0 : clock->side
+        // float diff_v = update_lr();
+        float diff_v = lr_cnt * 0.05;
+        // diff_v = tanf(diff_v) * LEGS_DIST_LR * 12.f / 2.f;
+        m[0].simpleWalk_generator(phrase, base_h, base_v - diff_v, 0);// l
+        m[1].simpleWalk_generator(phrase, base_h, base_v + diff_v, 0);
+        m[2].simpleWalk_generator(phrase, base_h, base_v - diff_v, 0);// l
+        m[3].simpleWalk_generator(phrase, base_h, base_v + diff_v, 0);
         for (int i = 0; i < 4; i++){
             m[i].output();
         }
@@ -138,10 +149,11 @@ public:
 
 private:
     uint32_t __step = 0;
+    uint8_t is_init = 0;
     uint32_t PERIOD_CNT = INITIAL_PERIOD_CNT;
 
-    float base_h = 0.42f;
-    float base_v = 0.54f;
+    float base_h = 0.44f;
+    float base_v = 0.8f;
 
     arm_pid_instance_f32 pidPitch = {
         .Kp = 0.0,
@@ -149,30 +161,41 @@ private:
         .Kd = 0.0
     };
     arm_pid_instance_f32 pidYaw = {
-        .Kp = 0.0,
-        .Ki = 1.0 / (float)INITIAL_PERIOD_CNT,
-        .Kd = 0.0
+        .Kp = LEGS_DIST_LR * 38.f / 2.f,
+        .Ki = 1.f / (float)INITIAL_PERIOD_CNT,
+        // .Ki = 0.f,
+        .Kd = 0.f
     };
 
     float diff_h[4] = {0.f,0.f,0.f,0.f};
     float diff_v[4] = {0.f,0.f,0.f,0.f};
 
     singleLeg m[4]{
-        singleLeg(motors.leg.l_f, 0.125 * 1),
-        singleLeg(motors.leg.r_f, 0.125 * 3),
-        singleLeg(motors.leg.l_b, 0.125 * 5),
-        singleLeg(motors.leg.r_b, 0.125 * 7)
+        // singleLeg(motors.leg.l_f, 0.125 * 1),
+        // singleLeg(motors.leg.r_f, 0.125 * 3),
+        // singleLeg(motors.leg.l_b, 0.125 * 5),
+        // singleLeg(motors.leg.r_b, 0.125 * 7)
 
 
         // singleLeg(motors.leg.l_f, 0.125 * 1),
         // singleLeg(motors.leg.r_f, 0.125 * 1),
         // singleLeg(motors.leg.l_b, 0.125 * 1),
         // singleLeg(motors.leg.r_b, 0.125 * 1)
+
+        // ! OK 对角线
+        singleLeg(motors.leg.l_f, 0.125 * 1),
+        singleLeg(motors.leg.r_f, 0.125 * 5),
+        singleLeg(motors.leg.l_b, 0.125 * 5),
+        singleLeg(motors.leg.r_b, 0.125 * 1)
     };
 
     void update_target(void){
-        float o1 = arm_pid_f32(&pidPitch, target_pitch - pitch); // route
-        float o2 = arm_pid_f32(&pidYaw  , target_yaw   - yaw  ); // lr -> diff_v
+        // float o1 = arm_pid_f32(&pidPitch, target_pitch - pitch); // route
+        // float o2 = arm_pid_f32(&pidYaw  , target_yaw   - yaw  ); // lr -> diff_v
+    }
+
+    float update_lr(void){
+        return arm_pid_f32(&pidYaw  , target_yaw   - yaw  ); // lr -> diff_v
     }
 };
 
