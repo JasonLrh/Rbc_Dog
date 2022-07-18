@@ -91,7 +91,7 @@ public:
                 // front leg
                 leg_input[0].T = 0.f;
                 leg_input[0].Tvel = 0.f;
-                leg_input[0].kp = 52.f; // TODO: jump kp, kv
+                leg_input[0].kp = 36.f; // TODO: jump kp, kv
                 leg_input[0].kv = 0.2f;
                 leg_input[0].pos.theta = 0.f;
                 leg_input[0].pos.dist = 0.6f;
@@ -124,9 +124,9 @@ public:
                 
                 // back leg
                 leg_input[1].T = 0.f;
-                leg_input[1].Tvel = -30.f;
-                leg_input[1].kp = 350.f;
-                leg_input[1].kv = 0.5f;
+                leg_input[1].Tvel = -0.f;
+                leg_input[1].kp = 200.f;
+                leg_input[1].kv = 0.06f;
                 leg_input[1].pos.theta = euler[2] + __jumper_angle;
                 leg_input[1].pos.dist = 0.8f;
                 // ST_LOGD("valid!");
@@ -187,8 +187,8 @@ public:
 
         g[0].set_input(leg_input[0]);
         g[1].set_input(leg_input[1]);
-        g[1].output();
         g[0].output();
+        g[1].output();
         __step++;
     }
 

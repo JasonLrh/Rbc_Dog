@@ -4,14 +4,14 @@
 #include "arm_math.h"
 #include "imu.h"
 
-#define BANDWIDTH 0.75f
+#define BANDWIDTH 0.8f
 #define HEIGH_DIFF 0.00f
 // #define PARAM_A 9.0
 
 // #define H 0.38f
 // #define V 0.54f
 
-#define INITIAL_PERIOD_CNT 150
+#define INITIAL_PERIOD_CNT 220
 
 class singleLeg {
 public:
@@ -94,7 +94,9 @@ private:
     dog_motor_single_t * m;
 
     float tuo_a = 5.f / 4.f;
+    // float tuo_a = 56.f / 55.f;
     float tuo_b = 2.f / 5.f;
+    // float tuo_b = 11.f / 11.f;
 };
 
 extern volatile int32_t lr_cnt;
@@ -152,8 +154,8 @@ private:
     uint8_t is_init = 0;
     uint32_t PERIOD_CNT = INITIAL_PERIOD_CNT;
 
-    float base_h = 0.44f;
-    float base_v = 0.8f;
+    float base_h = 0.56f;
+    float base_v = 0.5f;
 
     arm_pid_instance_f32 pidPitch = {
         .Kp = 0.0,

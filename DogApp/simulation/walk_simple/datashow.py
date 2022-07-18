@@ -49,4 +49,5 @@ with open('data.csv', 'r') as f:
     plt.plot(x, y)
     plt.gca().set_aspect(1)
     # plt.legend()
+    # plt.show()
     plt.savefig('foot_path.png')
