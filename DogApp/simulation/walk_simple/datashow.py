@@ -51,3 +51,6 @@ with open('data.csv', 'r') as f:
     # plt.legend()
     # plt.show()
     plt.savefig('foot_path.png')
+    print(min(x))
+    top_index = y.index(max(y))
+    print( "center height: %.2f cm"%((max(y) - y[0])*100) )

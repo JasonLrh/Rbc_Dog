@@ -38,8 +38,8 @@ typedef struct _dog_leg_output_t
 #define PARAM_A 9.0
 
 // #define H 0.37795f
-#define H 0.7f
-#define V 0.3f
+#define H 0.5f
+#define V 0.18f
 
 #define PERIOD_CNT 1200
 
@@ -75,8 +75,8 @@ static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_
         float half_line_len = vel * (LEG_LEN_UPPER + LEG_LEN_LOWER) * BANDWIDTH / 2 ;
         float h_to_line = height * (LEG_LEN_UPPER + LEG_LEN_LOWER);
 
-        float tuo_a = 5.f / 4.f;
-        float tuo_b = 2.f / 5.f;
+        float tuo_a = 1.6f;
+        float tuo_b = 2.5f;
         float tuo_dist = sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
         float tuo_off = - h_to_line + tuo_dist;
 
@@ -120,7 +120,7 @@ int main(void)
 
     fp = fopen("data.csv", "w");
 
-    for (uint16_t step = 0; step < 1.5 * PERIOD_CNT; step++)
+    for (uint16_t step = 0; step < PERIOD_CNT; step++)
     {
         dog_leg_output_t out;
 

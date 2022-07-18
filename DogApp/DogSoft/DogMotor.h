@@ -33,7 +33,7 @@ typedef struct _dog_motor_single_t {
     uint8_t monitor;
 } dog_motor_single_t;
 
-typedef union _dog_motor_group_t{
+typedef union _dog_motor_group_t {
     dog_motor_single_t raw[8];
     struct {
         dog_motor_single_t l_f[2];
@@ -44,8 +44,7 @@ typedef union _dog_motor_group_t{
     dog_motor_single_t leg_array[4][2];
 } dog_motor_group_t;
 
-typedef struct _dog_motor_output_t
-{
+typedef struct _dog_motor_output_t {
     float vel;
     float pos;
     float kv;

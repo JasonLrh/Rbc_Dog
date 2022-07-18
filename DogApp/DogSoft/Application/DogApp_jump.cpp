@@ -1,67 +1,37 @@
-#include "DogSoft.h"
-#include "DogApp.h"
-#include <math.h>
-#include "arm_math.h"
-#include "imu.h"
+#include "DogApp_util.h"
 
-class jumperLegDual
+jumperLegDual::jumperLegDual(dog_motor_single_t *_leg_l, dog_motor_single_t *_leg_r){
+    ml = _leg_l;
+    mr = _leg_r;
+}
+
+void jumperLegDual::set_input(const jumpLegInput &input)
 {
-public:
-    jumperLegDual(dog_motor_single_t *_leg_l, dog_motor_single_t *_leg_r)
+    float theta = input.pos.theta;
+    float d = (LEG_LEN_LOWER + LEG_LEN_UPPER) * input.pos.dist;
+    float dig_angle_half = acosf((LEG_LEN_UPPER * LEG_LEN_UPPER - LEG_LEN_LOWER * LEG_LEN_LOWER + d * d) / (2.f * d * LEG_LEN_UPPER));
+    for (int i = 0; i < 2; i++)
     {
-        ml = _leg_l;
-        mr = _leg_r;
+        lo.m[i].T = input.T;
+        lo.m[i].vel = input.Tvel;
+
+        lo.m[i].kp = input.kp;
+        lo.m[i].kv = input.kv;
+
     }
+    lo.m[0].pos = - theta + dig_angle_half;
+    lo.m[1].pos =   theta + dig_angle_half;
+}
 
-    struct jumpLegInput
-    {
-        struct
-        {
-            float dist;
-            float theta;
-        } pos;
+void jumperLegDual::output(void)
+{
+    dog_leg_set(ml, &lo);
+    dog_leg_set(mr, &lo);
+}
 
-        float Tvel;
-        float T;
-
-        float kp;
-        float kv;
-    };
-
-    void set_input(const jumpLegInput &input)
-    {
-        float theta = input.pos.theta;
-        float d = (LEG_LEN_LOWER + LEG_LEN_UPPER) * input.pos.dist;
-        float dig_angle_half = acosf((LEG_LEN_UPPER * LEG_LEN_UPPER - LEG_LEN_LOWER * LEG_LEN_LOWER + d * d) / (2.f * d * LEG_LEN_UPPER));
-        for (int i = 0; i < 2; i++)
-        {
-            lo.m[i].T = input.T;
-            lo.m[i].vel = input.Tvel;
-
-            lo.m[i].kp = input.kp;
-            lo.m[i].kv = input.kv;
-
-        }
-        lo.m[0].pos = - theta + dig_angle_half;
-        lo.m[1].pos =   theta + dig_angle_half;
-    }
-
-    void output(void)
-    {
-        dog_leg_set(ml, &lo);
-        dog_leg_set(mr, &lo);
-    }
-
-    float get_angle(void){
-        return (mr[1].p - mr[0].p)/2.f;
-        // return mr->p;
-    }
-
-private:
-    dog_leg_output_t lo;
-    dog_motor_single_t *ml;
-    dog_motor_single_t *mr;
-};
+float jumperLegDual::get_angle(void){
+    return (mr[1].p - mr[0].p)/2.f;
+}
 
 class dogJumper
 {

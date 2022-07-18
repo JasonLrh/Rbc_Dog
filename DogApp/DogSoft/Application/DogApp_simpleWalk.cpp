@@ -4,7 +4,7 @@
 #include "arm_math.h"
 #include "imu.h"
 
-#define BANDWIDTH 0.8f
+#define BANDWIDTH 0.75f
 #define HEIGH_DIFF 0.00f
 // #define PARAM_A 9.0
 
@@ -47,7 +47,7 @@ public:
         // vel += V;
 
         if (phrase < BANDWIDTH){
-            theta = atanf(vel/height * (phrase - BANDWIDTH / 2)) ; // TODO : add some offset here
+            theta = atanf(vel/height * (phrase - BANDWIDTH / 2)) + angle_offset; // TODO : add some offset here
             dist = (height - HEIGH_DIFF * sinf(phrase * 2 * PI)) / cosf(theta);
         } else {
             float half_line_len = vel * (LEG_LEN_UPPER + LEG_LEN_LOWER) * BANDWIDTH / 2 ;
@@ -94,12 +94,15 @@ private:
     dog_motor_single_t * m;
 
     float tuo_a = 5.f / 4.f;
-    // float tuo_a = 56.f / 55.f;
+    // float tuo_a = 1.6f;
     float tuo_b = 2.f / 5.f;
-    // float tuo_b = 11.f / 11.f;
+    // float tuo_b = 5.f / 4.f;
+    // float tuo_b = 2.5f;
 };
 
 extern volatile int32_t lr_cnt;
+
+#define MAX_YANG_ANGLE 15.0 * PI / 180.f
 
 class dogBoady{
 public:
@@ -136,11 +139,18 @@ public:
         // float diff_v = target_yaw - yaw; // < 0 : clock->side
         // float diff_v = update_lr();
         float diff_v = lr_cnt * 0.05;
-        // diff_v = tanf(diff_v) * LEGS_DIST_LR * 12.f / 2.f;
-        m[0].simpleWalk_generator(phrase, base_h, base_v - diff_v, 0);// l
-        m[1].simpleWalk_generator(phrase, base_h, base_v + diff_v, 0);
-        m[2].simpleWalk_generator(phrase, base_h, base_v - diff_v, 0);// l
-        m[3].simpleWalk_generator(phrase, base_h, base_v + diff_v, 0);
+        float diff_h = 0.0; // > 0, up
+        // float ang_off = 0.f;
+        float ang_off = euler[2];
+        if (ang_off > MAX_YANG_ANGLE) {
+            ang_off = MAX_YANG_ANGLE;
+        } else if (ang_off < - MAX_YANG_ANGLE) {
+            ang_off = - MAX_YANG_ANGLE;
+        }
+        m[0].simpleWalk_generator(phrase, base_h + diff_h, base_v - diff_v, ang_off);// l
+        m[1].simpleWalk_generator(phrase, base_h + diff_h, base_v + diff_v, ang_off);
+        m[2].simpleWalk_generator(phrase, base_h - diff_h, base_v - diff_v, ang_off);// l
+        m[3].simpleWalk_generator(phrase, base_h - diff_h, base_v + diff_v, ang_off);
         for (int i = 0; i < 4; i++){
             m[i].output();
         }
@@ -169,20 +179,11 @@ private:
         .Kd = 0.f
     };
 
-    float diff_h[4] = {0.f,0.f,0.f,0.f};
-    float diff_v[4] = {0.f,0.f,0.f,0.f};
-
     singleLeg m[4]{
         // singleLeg(motors.leg.l_f, 0.125 * 1),
         // singleLeg(motors.leg.r_f, 0.125 * 3),
         // singleLeg(motors.leg.l_b, 0.125 * 5),
         // singleLeg(motors.leg.r_b, 0.125 * 7)
-
-
-        // singleLeg(motors.leg.l_f, 0.125 * 1),
-        // singleLeg(motors.leg.r_f, 0.125 * 1),
-        // singleLeg(motors.leg.l_b, 0.125 * 1),
-        // singleLeg(motors.leg.r_b, 0.125 * 1)
 
         // ! OK 对角线
         singleLeg(motors.leg.l_f, 0.125 * 1),

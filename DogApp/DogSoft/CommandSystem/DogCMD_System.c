@@ -32,6 +32,11 @@ void dogcmd_system(const char * cmd){
                         app = APP_JUMP;
                         break;
                     
+                    case 'Q':
+                        tim_queue_enable = 1;
+                        app = APP_UPSTARIS;
+                        break;
+                    
                     
                     case 'U':
                         sscanf(cmd + 2, "%f,%f", &kp, &kv);
