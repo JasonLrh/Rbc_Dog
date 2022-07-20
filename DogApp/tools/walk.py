@@ -55,20 +55,25 @@ if __name__ == '__main__':
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
+                ser.write('SSe'.encode())
                 exit(0)
             if event.type == KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     ser.write('SL'.encode())
                 elif event.key == pygame.K_RIGHT:
                     ser.write('SR'.encode())
-                elif event.key == pygame.K_s:
+                elif event.key == pygame.K_UP:
                     ser.write('SSW'.encode())
-                elif event.key == pygame.K_d:
-                    ser.write('SSD'.encode())
+                elif event.key == pygame.K_DOWN:
+                    ser.write('SSe'.encode())
                 elif event.key == pygame.K_SPACE:
-                    ser.write('SSU10,1'.encode())
-                else:
                     ser.write('SSQ'.encode())
+                elif event.key == pygame.K_ESCAPE:
+                    ser.write('SSU10,1'.encode())
+                elif event.key == pygame.K_TAB:
+                    ser.write('SSE'.encode())
+                else:
+                    ser.write('SSe'.encode()) # stop anyway
 
 
     # while True:

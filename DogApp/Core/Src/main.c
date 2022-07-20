@@ -164,6 +164,10 @@ void RobotOutTask(void const * argument)
         dogapp_simpleWalk();
         break;
       
+      case APP_WALK_TEST:
+        dogapp_simpleWalk_fortest();
+        break;
+      
       case APP_JUMP:
         dogapp_jumper();
         break;

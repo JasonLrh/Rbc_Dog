@@ -33,15 +33,15 @@ typedef struct _dog_leg_output_t
 
 // ************************************************************************************************************
 
-#define BANDWIDTH 0.8f
+#define BANDWIDTH 0.75f
 #define HEIGH_DIFF 0.0f
 #define PARAM_A 9.0
 
 // #define H 0.37795f
-#define H 0.5f
-#define V 0.18f
+#define H 0.45f
+#define V 0.5f
 
-#define PERIOD_CNT 1200
+#define PERIOD_CNT 200
 
 static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_output_t * lo){
     // static float tgc_yaw = 0.f;
@@ -75,9 +75,9 @@ static void simpleWalk_generator(float phrase, float height, float vel, dog_leg_
         float half_line_len = vel * (LEG_LEN_UPPER + LEG_LEN_LOWER) * BANDWIDTH / 2 ;
         float h_to_line = height * (LEG_LEN_UPPER + LEG_LEN_LOWER);
 
-        float tuo_a = 1.6f;
-        float tuo_b = 2.5f;
-        float tuo_dist = sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
+        float tuo_a = 5.f / 4.f;
+        float tuo_b = 2.f / 5.f;
+        float tuo_dist= sqrtf( 1 - (1 / tuo_a) * (1 / tuo_a) ) * tuo_b * half_line_len;
         float tuo_off = - h_to_line + tuo_dist;
 
         float edge_angle = atan2f(tuo_dist, half_line_len);

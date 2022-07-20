@@ -22,6 +22,7 @@ public:
                 leg_input[i].pos.theta = __jumper_angle + euler[2];
                 leg_input[i].pos.dist = 0.34f;
             }
+
             // leg_input[0].pos.theta = __jumper_angle;
             // leg_input[1].pos.theta = __jumper_angle;
             // leg_input[0].pos.dist = 0.34f;
@@ -32,7 +33,7 @@ public:
                 // front leg
                 for (int i = 0; i < 2; i++){
                     leg_input[i].T = 0.f;
-                    leg_input[i].Tvel = -3.f;
+                    leg_input[i].Tvel = -2.f;
                     leg_input[i].kp = 80.f; // TODO: jump kp, kv
                     leg_input[i].kv = 0.3f;
                     leg_input[i].pos.theta = __jumper_angle + euler[2];
@@ -44,7 +45,7 @@ public:
 
         case J_STATE_JUMP:{
             
-            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 200){
+            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 130){
                 __STATE = J_STATE_LOAD;
 
                 for (int i = 0; i < 2; i++){
@@ -62,7 +63,7 @@ public:
         case J_STATE_LOAD:{
             leg_input[0].pos.theta = euler[2];
             leg_input[1].pos.theta = euler[2];
-            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 200){ 
+            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 100){ 
                 __STATE = J_STATE_FINISHED;
                 for (int i = 0; i < 2; i++){
                     leg_input[i].T = 0.f;
@@ -107,7 +108,7 @@ private:
     uint32_t __step = 0;
     uint32_t __m_cnt = 0;
     jumpStateMachine __STATE = J_STATE_PREPARE;
-    float __jumper_angle = 15 * PI / 180;
+    float __jumper_angle = 15.f * PI / 180.f;
     
     /*
         0:front

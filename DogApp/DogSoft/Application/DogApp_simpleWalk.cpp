@@ -11,7 +11,7 @@
 // #define H 0.38f
 // #define V 0.54f
 
-#define INITIAL_PERIOD_CNT 220
+#define INITIAL_PERIOD_CNT 200
 
 class singleLeg {
 public:
@@ -128,7 +128,8 @@ public:
     }
 
 
-    void update_walk(void){ // liner
+    void update_walk(bool is_test){ // liner
+        singleLeg * m = is_test == true ? m_f : m_d;
         if (is_init == 0){
             is_init = 1;
             target_yaw = yaw;
@@ -164,7 +165,7 @@ private:
     uint8_t is_init = 0;
     uint32_t PERIOD_CNT = INITIAL_PERIOD_CNT;
 
-    float base_h = 0.56f;
+    float base_h = 0.45f;
     float base_v = 0.5f;
 
     arm_pid_instance_f32 pidPitch = {
@@ -179,7 +180,7 @@ private:
         .Kd = 0.f
     };
 
-    singleLeg m[4]{
+    singleLeg m_d[4]{
         // singleLeg(motors.leg.l_f, 0.125 * 1),
         // singleLeg(motors.leg.r_f, 0.125 * 3),
         // singleLeg(motors.leg.l_b, 0.125 * 5),
@@ -191,6 +192,14 @@ private:
         singleLeg(motors.leg.l_b, 0.125 * 5),
         singleLeg(motors.leg.r_b, 0.125 * 1)
     };
+
+    singleLeg m_f[4]{
+        singleLeg(motors.leg.l_f, 0.125 * 1),
+        singleLeg(motors.leg.r_f, 0.125 * 3),
+        singleLeg(motors.leg.l_b, 0.125 * 5),
+        singleLeg(motors.leg.r_b, 0.125 * 7)
+    };
+
 
     void update_target(void){
         // float o1 = arm_pid_f32(&pidPitch, target_pitch - pitch); // route
@@ -205,5 +214,9 @@ private:
 
 dogBoady body(0.f);
 void dogapp_simpleWalk(void){
-    body.update_walk();
+    body.update_walk(false);
+}
+
+void dogapp_simpleWalk_fortest(void){
+    body.update_walk(true);
 }

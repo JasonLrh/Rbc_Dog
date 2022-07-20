@@ -36,6 +36,11 @@ void dogcmd_system(const char * cmd){
                         tim_queue_enable = 1;
                         app = APP_UPSTARIS;
                         break;
+
+                    case 'E':
+                        tim_queue_enable = 1;
+                        app = APP_WALK_TEST;
+                        break;
                     
                     
                     case 'U':
