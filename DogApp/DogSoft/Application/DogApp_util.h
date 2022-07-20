@@ -31,6 +31,8 @@ public:
     void output(void);
     float get_angle(void);
 
+    float get_d(void);
+
 private:
     dog_leg_output_t lo;
     dog_motor_single_t *ml;

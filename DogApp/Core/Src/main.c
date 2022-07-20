@@ -171,10 +171,15 @@ void RobotOutTask(void const * argument)
       case APP_JUMP:
         dogapp_jumper();
         break;
+
+      case APP_JUMP_BIG:
+        dogapp_jumper();
+        break;
       
       case APP_UPSTARIS:
         dogapp_upstaris();
         break;
+
 
       default:
         break;

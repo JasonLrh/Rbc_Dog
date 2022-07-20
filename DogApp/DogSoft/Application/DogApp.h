@@ -12,6 +12,7 @@ typedef enum _dog_app_choices {
     APP_WALK,
     APP_WALK_TEST,
     APP_JUMP,
+    APP_JUMP_BIG,
     APP_UPSTARIS
 }dog_app_choices;
 

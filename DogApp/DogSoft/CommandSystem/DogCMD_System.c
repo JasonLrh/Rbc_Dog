@@ -42,6 +42,11 @@ void dogcmd_system(const char * cmd){
                         app = APP_WALK_TEST;
                         break;
                     
+                    case 'F':
+                        tim_queue_enable = 1;
+                        app = APP_JUMP_BIG;
+                        break;
+                    
                     
                     case 'U':
                         sscanf(cmd + 2, "%f,%f", &kp, &kv);
@@ -52,13 +57,13 @@ void dogcmd_system(const char * cmd){
                         dog_body_sitdown();
                         break;
                     
-                    // case 'S':
-                    //     dog_body_standup(-1, -1); // tim has stoped , just standup here
-                    //     break;
-
-                    case 'F':
-                        // TODO: change output function
+                    case 'S':
+                        // void for stop
                         break;
+
+                    // case 'F':
+                    //     // TODO: change output function
+                    //     break;
                 
                 default:{
                     ST_LOGE("Invalid CMD");

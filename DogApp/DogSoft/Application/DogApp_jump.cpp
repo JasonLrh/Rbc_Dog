@@ -1,5 +1,7 @@
 #include "DogApp_util.h"
 
+extern volatile dog_app_choices app;
+
 jumperLegDual::jumperLegDual(dog_motor_single_t *_leg_l, dog_motor_single_t *_leg_r){
     ml = _leg_l;
     mr = _leg_r;
@@ -33,6 +35,13 @@ float jumperLegDual::get_angle(void){
     return (mr[1].p - mr[0].p)/2.f;
 }
 
+float jumperLegDual::get_d(void){
+    float t = (mr[1].p + mr[0].p)/2.f;
+    float ret0 = LEG_LEN_UPPER * cosf(t);
+    float ret1 = sqrtf(ret0 * ret0 - LEG_LEN_UPPER * LEG_LEN_UPPER + LEG_LEN_LOWER * LEG_LEN_LOWER);
+    return (ret0 + ret1) / (LEG_LEN_LOWER + LEG_LEN_UPPER);
+}
+
 class dogJumper
 {
 public:
@@ -44,7 +53,7 @@ public:
     {
         switch (__STATE)
         {
-        case J_STATE_PREPARE:{
+        case J_STATE_PREPARE:{// 准备跳跃
             for (int i = 0; i < 2; i++){
                 leg_input[i].T = 0.f;
                 leg_input[i].Tvel = 0.f;
@@ -55,14 +64,14 @@ public:
             leg_input[1].pos.theta = __jumper_angle;
             leg_input[0].pos.dist = 0.34f;
             leg_input[1].pos.dist = 0.37f;
-            if (DOG_CTRL_PERIOD_ms * __step > 1000){
+            if (DOG_CTRL_PERIOD_ms * __step > 400){ // 时间到
                 __STATE = J_STATE_FRONT_JUMP;
 
                 // front leg
                 leg_input[0].T = 0.f;
-                leg_input[0].Tvel = 0.f;
-                leg_input[0].kp = 36.f; // TODO: jump kp, kv
-                leg_input[0].kv = 0.2f;
+                leg_input[0].Tvel = -3.3f;
+                leg_input[0].kp = 39.f; // TODO: jump kp, kv
+                leg_input[0].kv = 0.3f;
                 leg_input[0].pos.theta = 0.f;
                 leg_input[0].pos.dist = 0.6f;
                 
@@ -76,12 +85,12 @@ public:
             }
         } break;
 
-        case J_STATE_FRONT_JUMP:{
+        case J_STATE_FRONT_JUMP:{// 前脚起跳
 
             // TODO : pitch
             leg_input[1].pos.theta = euler[2] + __jumper_angle * 0.8;
             
-            if (fabsf(euler[2] - 45 * PI / 180.f) < 3 * PI / 180.f){
+            if (fabsf(euler[2] - 45 * PI / 180.f) < 3.f * PI / 180.f){ // 车身角度到位
                 __STATE = J_STATE_BACK_JUMP;
 
                 // front leg
@@ -104,12 +113,37 @@ public:
             }
         } break;
 
-        case J_STATE_BACK_JUMP:{
+        case J_STATE_BACK_JUMP:{ // 后腿起跳
             
             leg_input[0].pos.theta = euler[2] - __jumper_angle;
             leg_input[1].pos.theta = euler[2];
 
-            if ((__step - __m_cnt)*DOG_CTRL_PERIOD_ms >= 100) {
+            // if ((__step - __m_cnt)*DOG_CTRL_PERIOD_ms >= 60) { // 固定输出时间到位
+            if (g[1].get_d() > 0.75) { // 固定输出时间到位
+                __STATE = J_STATE_FLY;
+
+                // front leg
+                leg_input[0].T = 0.f;
+                leg_input[0].Tvel = 0.f;
+                leg_input[0].kp = 15.f;  // TODO: load kp, kv
+                leg_input[0].kv = 0.8f;
+                leg_input[0].pos.theta = 0.f;
+                leg_input[0].pos.dist = 0.24f;
+                
+                // back leg
+                leg_input[1].T = 0.f;
+                leg_input[1].Tvel = 0.f;
+                leg_input[1].kp = 15.f;  // TODO: load kp, kv
+                leg_input[1].kv = 0.8f;
+                leg_input[1].pos.theta = 0.f;
+                leg_input[1].pos.dist = 0.24f;
+            }
+        } break;
+
+        case J_STATE_FLY:{ // 降落准备
+            leg_input[0].pos.theta = euler[2] - __jumper_angle;
+            leg_input[1].pos.theta = euler[2];
+            if (fabsf(euler[2] - (- 10.f * PI / 180.f)) < 3.f * PI / 180.f){
                 __STATE = J_STATE_LOAD;
 
                 // front leg
@@ -117,31 +151,50 @@ public:
                 leg_input[0].Tvel = 0.f;
                 leg_input[0].kp = 80.f;  // TODO: load kp, kv
                 leg_input[0].kv = 2.4f;
-                leg_input[0].pos.theta = 0.f;
-                leg_input[0].pos.dist = 0.42f;
+                leg_input[0].pos.theta = euler[2] - __jumper_angle;
+                leg_input[0].pos.dist = 0.48f;
                 
                 // back leg
                 leg_input[1].T = 0.f;
                 leg_input[1].Tvel = 0.f;
-                leg_input[1].kp = 25.f;  // TODO: load kp, kv
+                leg_input[1].kp = 15.f;  // TODO: load kp, kv
                 leg_input[1].kv = 0.8f;
-                leg_input[1].pos.theta = 0.f;
-                leg_input[1].pos.dist = 0.42f;
-            }
+                leg_input[1].pos.theta = euler[2];
+                leg_input[1].pos.dist = 0.34f;
 
-            // if (__step % 200 == 0){
-            //     ST_LOGI("%.2f", g[1].get_angle());
-            // }
-            // if ()
-            // __STATE = J_STATE_FRONT_JUMP;
+            }
         } break;
 
-        case J_STATE_LOAD:{
+        case J_STATE_LOAD:{ // 降落准备
             leg_input[0].pos.theta = euler[2] - __jumper_angle;
             leg_input[1].pos.theta = euler[2];
+            if (euler[2] > - 5.f * PI / 180.f){
+                __STATE = J_STATE_FINISHED;
+            }
         } break;
 
-        case J_STATE_FINISHED:{
+        case J_STATE_FINISHED:{ // 完成
+            leg_input[0].pos.theta = euler[2];
+            leg_input[1].pos.theta = euler[2];
+
+            __step = 0;
+            __STATE = J_STATE_PREPARE;
+            app = APP_NONE;
+
+        } break;
+
+        case J_STATE_TEST:{
+            leg_input[1].pos.theta = euler[2] + __jumper_angle * 0.8;
+            if (__last_euler > euler[2]){
+                ST_LOGI("%.2f", __last_euler * 180.f / PI);
+            }
+            __last_euler = euler[2];
+
+            if ((__step - __m_cnt)*DOG_CTRL_PERIOD_ms >= 500){
+                __STATE = J_STATE_FINISHED;
+            } 
+
+
 
         } break;
         
@@ -149,11 +202,6 @@ public:
             break;
         }
         
-
-
-
-
-
 
         g[0].set_input(leg_input[0]);
         g[1].set_input(leg_input[1]);
@@ -168,14 +216,19 @@ private:
         J_STATE_PREPARE,
         J_STATE_FRONT_JUMP,
         J_STATE_BACK_JUMP,
+        J_STATE_FLY,
         J_STATE_LOAD,
-        J_STATE_FINISHED
+        J_STATE_FINISHED,
+
+        J_STATE_TEST
     };
 
     uint32_t __step = 0;
     uint32_t __m_cnt = 0;
     jumpStateMachine __STATE = J_STATE_PREPARE;
-    float __jumper_angle = 30 * PI / 180;
+    float __jumper_angle = 45.f * PI / 180.f;
+
+    float __last_euler = 0.f;
     
     /*
         0:front
