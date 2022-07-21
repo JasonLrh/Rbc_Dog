@@ -27,25 +27,28 @@ public:
             // leg_input[1].pos.theta = __jumper_angle;
             // leg_input[0].pos.dist = 0.34f;
             // leg_input[1].pos.dist = 0.34f;
-            if (DOG_CTRL_PERIOD_ms * __step > 1000){
+            if (DOG_CTRL_PERIOD_ms * __step > 400){
                 __STATE = J_STATE_JUMP;
 
-                // front leg
                 for (int i = 0; i < 2; i++){
                     leg_input[i].T = 0.f;
                     leg_input[i].Tvel = -2.f;
-                    leg_input[i].kp = 80.f; // TODO: jump kp, kv
-                    leg_input[i].kv = 0.3f;
-                    leg_input[i].pos.theta = __jumper_angle + euler[2];
-                    leg_input[i].pos.dist = 0.5f;
+                    leg_input[i].kv = 0.2f;
+                    leg_input[i].pos.dist = 0.53f;
                 }
+                leg_input[0].pos.theta = __jumper_angle + euler[2];
+                leg_input[1].pos.theta = __jumper_angle + euler[2];
+                leg_input[0].kp = 75.f;
+                leg_input[1].kp = 75.f;
                 __m_cnt = __step;
             }
         } break;
 
         case J_STATE_JUMP:{
-            
-            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 130){
+            leg_input[0].pos.theta = __jumper_angle + euler[2];
+            leg_input[1].pos.theta = __jumper_angle + euler[2];
+
+            if (g[0].get_d() > 0.51 && g[1].get_d() > 0.51){
                 __STATE = J_STATE_LOAD;
 
                 for (int i = 0; i < 2; i++){

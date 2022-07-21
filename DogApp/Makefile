@@ -22,7 +22,7 @@ TARGET = H750_Dog
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -O3
+OPT = -Os
 
 
 #######################################
