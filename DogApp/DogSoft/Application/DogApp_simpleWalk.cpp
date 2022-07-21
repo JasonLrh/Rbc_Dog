@@ -139,7 +139,7 @@ public:
         __step = __step >= PERIOD_CNT ? 0 : __step;
         // float diff_v = target_yaw - yaw; // < 0 : clock->side
         // float diff_v = update_lr();
-        float diff_v = lr_cnt * 0.05;
+        float diff_v = lr_cnt * 0.03;
         float diff_h = 0.0; // > 0, up
         // float ang_off = 0.f;
         float ang_off = euler[2];

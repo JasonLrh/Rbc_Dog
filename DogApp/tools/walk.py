@@ -71,8 +71,8 @@ if __name__ == '__main__':
                     ser.write('SSQ'.encode())
                 elif event.key == pygame.K_ESCAPE: # standup
                     ser.write('SSU10,1'.encode())
-                elif event.key == pygame.K_TAB: # walk test
-                    ser.write('SSE'.encode())
+                # elif event.key == pygame.K_TAB: # walk test
+                #     ser.write('SSE'.encode())
                 elif event.key == pygame.K_f: # jump big
                     ser.write('SSF'.encode())
                 elif event.key == pygame.K_0:

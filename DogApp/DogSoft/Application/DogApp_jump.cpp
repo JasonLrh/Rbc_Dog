@@ -105,12 +105,11 @@ public:
                 
                 // back leg
                 leg_input[1].T = 0.f;
-                leg_input[1].Tvel = -2.f;
-                leg_input[1].kp = 380.f; // TODO: 后腿跳 力度控制
+                leg_input[1].Tvel = -40.f;
+                leg_input[1].kp = 400.f; // TODO: 后腿跳 力度控制
                 leg_input[1].kv = 0.01f;
-                leg_input[1].pos.dist = 0.85f;
+                leg_input[1].pos.dist = 0.89f;
                 // ST_LOGD("valid!");
-                __m_cnt = __step;
             }
         } break;
 
@@ -120,7 +119,7 @@ public:
             leg_input[1].pos.theta = JUMP_ANGLE;
 
             // if ((__step - __m_cnt)*DOG_CTRL_PERIOD_ms >= 60) { // 固定输出时间到位
-            if (g[1].get_d() > 0.77) { // ! 收腿过杆
+            if (g[1].get_d() > 0.8) { // ! 收腿过杆
                 __STATE = J_STATE_FLY;
 
                 // front leg
@@ -138,13 +137,15 @@ public:
                 leg_input[1].kv = 0.2f;
                 leg_input[1].pos.theta = 0.f;
                 leg_input[1].pos.dist = 0.22f;
+                __m_cnt = __step;
             }
         } break;
 
         case J_STATE_FLY:{ // 飞空
             leg_input[0].pos.theta = euler[2] - __jumper_angle;
             leg_input[1].pos.theta = euler[2];
-            if (euler[2] < - 8.f * PI / 180.f){
+            // if (euler[2] < - 8.f * PI / 180.f){
+            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 500){
                 __STATE = J_STATE_LOAD;
 
                 // front leg
@@ -162,14 +163,15 @@ public:
                 leg_input[1].kv = 0.8f;
                 leg_input[1].pos.theta = euler[2];
                 leg_input[1].pos.dist = 0.34f;
-
+                __m_cnt = __step;
             }
         } break;
 
         case J_STATE_LOAD:{ // 降落准备
             leg_input[0].pos.theta = euler[2] - __jumper_angle;
             leg_input[1].pos.theta = euler[2];
-            if (euler[2] > - 8.f * PI / 180.f){
+            // if (euler[2] > - 8.f * PI / 180.f){
+            if ((__step - __m_cnt) * DOG_CTRL_PERIOD_ms > 200){
                 __STATE = J_STATE_FINISHED;
 
                 leg_input[1].kp = 80.f;  // TODO: load kp, kv
@@ -229,7 +231,7 @@ private:
     uint32_t __step = 0;
     uint32_t __m_cnt = 0;
     jumpStateMachine __STATE = J_STATE_PREPARE;
-    float __jumper_angle = 30.f * PI / 180.f;
+    float __jumper_angle = 18.f * PI / 180.f;
 
     float __last_euler = 0.f;
     
