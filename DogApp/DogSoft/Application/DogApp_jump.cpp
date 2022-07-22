@@ -94,21 +94,22 @@ public:
             
             if (euler[2] >  PI / 2.f - __jumper_angle){ // 车身角度到位
                 __STATE = J_STATE_BACK_JUMP;
+                // __STATE = J_STATE_FINISHED;
 
                 // front leg
                 leg_input[0].T = 0.f;
                 leg_input[0].Tvel = 0.f;
                 leg_input[0].kp = 6.f;
-                leg_input[0].kv = 2.f;
+                leg_input[0].kv = 1.2f;
                 leg_input[0].pos.theta = 0.f;
-                leg_input[0].pos.dist = 0.22f;
+                leg_input[0].pos.dist = 0.18f;
                 
                 // back leg
                 leg_input[1].T = 0.f;
-                leg_input[1].Tvel = -40.f;
-                leg_input[1].kp = 400.f; // TODO: 后腿跳 力度控制
+                leg_input[1].Tvel = -45.f;
+                leg_input[1].kp = 490.f; // TODO: 后腿跳 力度控制
                 leg_input[1].kv = 0.01f;
-                leg_input[1].pos.dist = 0.89f;
+                leg_input[1].pos.dist = 0.89f; // ! 改长
                 // ST_LOGD("valid!");
             }
         } break;
@@ -119,7 +120,7 @@ public:
             leg_input[1].pos.theta = JUMP_ANGLE;
 
             // if ((__step - __m_cnt)*DOG_CTRL_PERIOD_ms >= 60) { // 固定输出时间到位
-            if (g[1].get_d() > 0.8) { // ! 收腿过杆
+            if (g[1].get_d() > 0.87) { // ! 收腿过杆
                 __STATE = J_STATE_FLY;
 
                 // front leg
@@ -231,7 +232,7 @@ private:
     uint32_t __step = 0;
     uint32_t __m_cnt = 0;
     jumpStateMachine __STATE = J_STATE_PREPARE;
-    float __jumper_angle = 18.f * PI / 180.f;
+    float __jumper_angle = 30.f * PI / 180.f;
 
     float __last_euler = 0.f;
     

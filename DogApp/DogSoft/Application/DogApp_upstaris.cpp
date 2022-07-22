@@ -358,9 +358,9 @@ public:
                 for (int i = 0; i < 2; i++){
                     leg_input[i].T = 0.f;
                     leg_input[i].Tvel = 0.f;
-                    leg_input[i].kp = 22.f;
-                    leg_input[i].kv = 0.4f;
-                    leg_input[i].pos.dist = 0.34f;
+                    leg_input[i].kp = 24.f;
+                    leg_input[i].kv = 1.0f;
+                    leg_input[i].pos.dist = 0.37f;
                     leg_input[i].pos.theta = euler[2];
                 }
                 // leg_input[0].pos.theta = euler[2];
